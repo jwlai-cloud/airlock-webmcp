@@ -35,6 +35,23 @@ iframe{width:100%;height:calc(100vh - 110px);border:1px solid var(--line);border
 ul.ask{margin:0;padding-left:16px;color:var(--dim)}
 ul.ask li{margin:3px 0}
 ul.ask b{color:var(--fg);font-weight:400}
+/* operator consent modal — replaces confirm() so the approval is visible in-page
+   (and on camera) rather than in a native dialog the page cannot style */
+#veil{position:fixed;inset:0;background:rgba(1,4,9,.72);display:none;place-items:center;z-index:50}
+#veil.on{display:grid}
+#modal{width:min(560px,92vw);border:1px solid var(--acc);border-radius:8px;
+  background:var(--panel);box-shadow:0 24px 64px -24px #000;overflow:hidden}
+#modal .mh{padding:12px 18px;border-bottom:1px solid var(--line);
+  text-transform:uppercase;letter-spacing:.09em;font-size:11px;color:var(--acc)}
+#modal .mb{padding:18px;display:flex;flex-direction:column;gap:12px}
+#modal .purpose{border-left:3px solid var(--acc);padding:8px 12px;background:#0d1117}
+#modal .terms{color:var(--dim);display:flex;flex-direction:column;gap:5px}
+#modal .terms span::before{content:"— ";color:var(--ok)}
+#modal .mf{display:flex;gap:10px;justify-content:flex-end;padding:12px 18px;
+  border-top:1px solid var(--line)}
+#modal button{font:inherit;padding:7px 16px;border-radius:5px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--fg)}
+#modal button.go{background:var(--ok);border-color:var(--ok);color:#04140a;font-weight:600}
 </style>
 <header>
   <h1>Airlock</h1>
@@ -43,6 +60,25 @@ ul.ask b{color:var(--fg);font-weight:400}
   <span class=badge id=toolcount>tools: —</span>
   <div class=sub>Two origins. One agent. No rows cross the boundary.</div>
 </header>
+<div id=veil>
+  <div id=modal role=dialog aria-modal=true aria-labelledby=mtitle>
+    <div class=mh id=mtitle>Airlock — both operators must approve</div>
+    <div class=mb>
+      <div>An agent is requesting permission to query across the origin boundary.</div>
+      <div class=purpose id=mpurpose></div>
+      <div class=terms>
+        <span>Aggregate results only. No row-level data crosses.</span>
+        <span>Counts below k = 250 are suppressed, not returned.</span>
+        <span>Every crossing is receipted and visible to both sides.</span>
+        <span>Either operator may revoke, which unregisters the tool.</span>
+      </div>
+    </div>
+    <div class=mf>
+      <button id=mno>Decline</button>
+      <button class=go id=myes>Approve</button>
+    </div>
+  </div>
+</div>
 <div class=wrap>
   <div class=pane>
     <h3>Advertiser · origin A</h3>
@@ -67,7 +103,7 @@ ul.ask b{color:var(--fg);font-weight:400}
   </div>
 
   <div class=pane>
-    <h3>Airlock ledger — every boundary crossing</h3>
+    <h3>Airlock ledger — crossings brokered by origin A</h3>
     <div id=quarantine></div>
     <div class=card>
       <div class=hd>Receipts</div>
@@ -146,6 +182,17 @@ function quarantine(source, text) {
    whose ToolExecuteCallbackOptions carries only `signal` — so its receiver is not
    pinned down by any published spec. Probe both known receivers and fall back to
    prompting directly. The consent gate must not hinge on where the method lives. */
+function askOperator(purpose) {
+  $("mpurpose").textContent = purpose;
+  $("veil").classList.add("on");
+  $("myes").focus();
+  return new Promise(resolve => {
+    const done = v => { $("veil").classList.remove("on"); resolve(v); };
+    $("myes").onclick = () => done(true);
+    $("mno").onclick = () => done(false);
+  });
+}
+
 async function withUserInteraction(options, fn) {
   const viaOptions = options?.requestUserInteraction?.bind(options);
   const viaContext = document.modelContext.requestUserInteraction?.bind(document.modelContext);
@@ -185,8 +232,7 @@ if (!("modelContext" in document)) {
     description: "Ask both operators to approve a stated purpose for querying across the boundary. On grant, registers estimate_overlap.",
     inputSchema: { type: "object", properties: { purpose: { type: "string" } }, required: ["purpose"] },
     execute: async ({ purpose }, options) => {
-      const granted = await withUserInteraction(options, async () =>
-        confirm(`Airlock consent\n\nPurpose: ${purpose}\n\nAllow aggregate-only queries across the boundary?\nNo row-level data will cross. k=${K}.`));
+      const granted = await withUserInteraction(options, () => askOperator(purpose));
       if (!granted) {
         receipt("A→A", "request_partner_consent", "declined by operator — estimate_overlap stays unregistered", true);
         log("consent declined; estimate_overlap not registered", "bad");
@@ -278,7 +324,17 @@ if (!("modelContext" in document)) {
      about requestUserInteraction's receiver is answered by opening the page rather
      than by poking at DevTools. Also readable by a headless --dump-dom run. */
   (async function diag() {
+    // wait for the partner iframe, or its tools are not registered yet and the
+    // cross-origin discovery line reports a false negative
+    await new Promise(r => $("f").addEventListener("load", r, { once: true }));
     const mc = document.modelContext;
+    // B's registerTool calls resolve a tick or two after its document loads, so poll
+    // rather than sampling once — a single read reports a false negative.
+    for (let i = 0; i < 40; i++) {
+      const t = await mc.getTools({ fromOrigins: [B_ORIGIN] }).catch(() => []);
+      if (t.some(x => x.origin === B_ORIGIN)) break;
+      await new Promise(r => setTimeout(r, 50));
+    }
     const lines = [
       `document.modelContext: present`,
       `modelContext.requestUserInteraction: ${typeof mc.requestUserInteraction}`,
@@ -286,7 +342,9 @@ if (!("modelContext" in document)) {
     ];
     try {
       const partner = await mc.getTools({ fromOrigins: [B_ORIGIN] });
-      lines.push(`partner tools visible: ${partner.length} [${partner.map(t => t.name).join(", ")}]`);
+      const foreign = partner.filter(t => t.origin === B_ORIGIN);
+      lines.push(`getTools({fromOrigins:[B]}) returned ${partner.length}, of which ${foreign.length} are B's`);
+      lines.push(`from B: [${foreign.map(t => t.name).join(", ")}]`);
       if (partner[0]) lines.push(`RegisteredTool keys: {${Object.keys(partner[0]).sort().join(", ")}}`);
     } catch (e) {
       lines.push(`getTools({fromOrigins}) threw: ${e.name}: ${e.message}`);
@@ -299,7 +357,15 @@ if (!("modelContext" in document)) {
   })();
 
   log("4 tools registered; estimate_overlap withheld pending consent", "ok");
-  document.modelContext.addEventListener?.("toolchange", () => { log("toolchange fired", "dim"); refreshToolCount(); });
+  // toolchange fires once per registration, so logging every one buries the panel in
+  // noise at startup. Track the count and report only when it actually changes.
+  let lastCount = -1;
+  document.modelContext.addEventListener?.("toolchange", async () => {
+    await refreshToolCount();
+    const n = (await document.modelContext.getTools().catch(() => [])).length;
+    if (n !== lastCount && lastCount !== -1) log(`toolchange — ${n} tools now registered`, "dim");
+    lastCount = n;
+  });
   refreshToolCount();
 }
 </script>

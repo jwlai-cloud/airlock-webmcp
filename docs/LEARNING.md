@@ -136,7 +136,8 @@ Hard-won; costs an hour each if rediscovered under time pressure.
 | `executeTool` arg 1 | a tool *name* in several write-ups | the **`RegisteredTool` object** from `getTools()` |
 | `executeTool` arg 2 | spec IDL says `object inputObject` | must be a **JSON string**; an object throws `UnknownError: Failed to parse input arguments` |
 | `executeTool` return | `Promise<DOMString>` | matches — a **JSON string**, parse it |
-| `requestUserInteraction` | absent from the W3C IDL and from Chrome's docs | exists in Chrome's `model_context.idl`; receiver not pinned by any published spec |
+| `requestUserInteraction` | absent from the W3C IDL and from Chrome's docs | **does not exist at all.** Not on `document.modelContext`, and the execute callback's second argument is `undefined` — not even the spec'd `{signal}` |
+| `getTools({fromOrigins})` | reads as a filter | **additive** — returns your own tools *plus* the listed origins'. Filter on `t.origin` |
 
 Note the third row precisely: the divergence is on **input only**. The spec always
 said the return is a `DOMString`. So the call is asymmetric-looking but correct:
@@ -151,9 +152,15 @@ The double parse is not a bug. The outer parse yields the MCP envelope
 `{content:[{type:"text", text:"..."}]}`; the inner parse yields whatever the tool
 serialized into that text slot.
 
-The last row is why `withUserInteraction()` in `site-a/index.html` probes both
-receivers and falls back to a direct dialog. An API that no published spec pins down
-should not be the single point of failure for the demo's central claim.
+The `requestUserInteraction` row is the expensive one. Airlock's first implementation
+called it from the execute callback's second argument — which is `undefined`, so the
+consent gate threw on every attempt. `withUserInteraction()` now probes both plausible
+receivers and falls back to opening an in-page modal directly; `tools/verify.js` asserts
+consent actually completes. An API that no published specification pins down should
+never be the single point of failure for a demo's central claim.
+
+Every row in this table is asserted by `tools/verify.js` against real Chrome, including
+the exact error string for the object-input case. Run `npm run verify`.
 
 ---
 

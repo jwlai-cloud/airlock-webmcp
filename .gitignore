@@ -1,1 +1,4 @@
 .firecrawl/
+.airlock-profile/
+.airlock-video/
+node_modules/

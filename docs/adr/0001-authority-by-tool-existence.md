@@ -15,9 +15,9 @@ already granted. The refusal message is itself an oracle.
 
 ## Decision
 
-Do not register the tool until consent is granted. `request_partner_consent` calls
-`requestUserInteraction` to put a dialog in front of the operator and, on grant, calls
-`registerTool` with `{signal: controller.signal}`. `revoke_partner_consent` aborts that
+Do not register the tool until consent is granted. `request_partner_consent` puts an approval
+modal in front of the operator and, on grant, calls `registerTool` with
+`{signal: controller.signal}`. `revoke_partner_consent` aborts that
 signal, which unregisters the tool. Each transition fires `toolchange`.
 
 ## Consequences
@@ -28,6 +28,15 @@ signal, which unregisters the tool. Each transition fires `toolchange`.
 - Agents caching a tool list can go stale; `toolchange` is the mitigation, and the
   browser mediates `executeTool` against current registration regardless.
 - This is the submission's central claim, so it is on the never-cut list in SPEC §8.
+
+## Amendment, 2026-09-01
+
+The original implementation called `client.requestUserInteraction()` from the execute
+callback's second argument. Testing against Chrome 152 showed that argument is
+`undefined` and the method exists on no receiver, so that code path threw. Consent now
+uses an in-page modal resolved inside the tool call, which is also visible on camera and
+stylable — a native `confirm()` was neither. The decision above is unchanged; only the
+dialog mechanism moved.
 
 ## Alternatives rejected
 

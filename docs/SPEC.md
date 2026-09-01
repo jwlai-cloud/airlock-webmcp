@@ -50,7 +50,7 @@ Registered for the visiting agent.
 | Tool | Input | Annotations | Returns |
 |---|---|---|---|
 | `list_cohorts` | `{}` | `readOnlyHint` | local cohorts, counts |
-| `request_partner_consent` | `{purpose}` | — | Wraps `client.requestUserInteraction()`. Both sides' operators approve the stated purpose. On grant, registers `estimate_overlap`. |
+| `request_partner_consent` | `{purpose}` | — | Puts an in-page approval modal in front of the operator. On grant, registers `estimate_overlap`. |
 | `estimate_overlap` | `{cohortId, segment}` | — | **Not registered until consent is granted.** Brokers to B, applies k-anonymity, returns aggregate. |
 | `get_receipts` | `{}` | `readOnlyHint` | every boundary crossing, ordered |
 
@@ -90,6 +90,13 @@ const out   = JSON.parse(raw);   // { content: [{ type: "text", text: "..." }] }
 - `RegisteredTool` shape: `{ annotations, description, inputSchema, name, origin, title, window }`.
 - Cross-origin iframe registration needs `allow="tools"`.
 - `exposedTo` accepts `http://localhost` — local dev needs no HTTPS.
+- `fromOrigins` is **additive, not a filter**: `getTools({fromOrigins:[B]})` returns the
+  caller's own tools *plus* B's. Filter on `t.origin` if you need only the partner's.
+- `requestUserInteraction` **does not exist** in Chrome 152, on any receiver. The
+  execute callback's second argument is `undefined` — not even the spec'd `{signal}`.
+  Consent therefore uses an in-page modal opened during the tool call.
+
+All of the above is asserted by `tools/verify.js` (17 checks, real Chrome).
 
 ## 7. Scope
 

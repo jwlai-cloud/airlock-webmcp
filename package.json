@@ -1,0 +1,10 @@
+{
+  "name": "airlock-webmcp",
+  "private": true,
+  "description": "Verification and capture harness for Airlock. The app itself is two dependency-free static HTML files; this is only the test rig.",
+  "scripts": {
+    "verify": "node tools/verify.js",
+    "capture": "node tools/capture.js"
+  },
+  "devDependencies": { "playwright": "^1.62.1" }
+}

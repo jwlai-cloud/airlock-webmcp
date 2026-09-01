@@ -494,16 +494,29 @@ overlapAbort.<span class=r>abort</span>();</pre>
         <td>matches — a JSON string, parse it</td></tr>
       <tr><td><code>requestUserInteraction</code></td>
         <td>absent from the W3C IDL and from Chrome's own docs</td>
-        <td>exists in Chrome's <code>model_context.idl</code>; its receiver is pinned
-          down by no published spec</td></tr>
+        <td><b>does not exist at all.</b> Not on <code>document.modelContext</code>, and
+          the execute callback's second argument is <code>undefined</code> — not even
+          the spec'd <code>{signal}</code></td></tr>
+      <tr><td><code>getTools({fromOrigins})</code></td><td>reads as a filter</td>
+        <td><b>additive</b> — returns your own tools <em>plus</em> the listed origins'.
+          Filter on <code>t.origin</code> for just the partner's</td></tr>
     </table>
     </div>
     <p class=col>Note the third row precisely: the divergence is on <em>input only</em>.
       The spec always said the return is a <code>DOMString</code>.</p>
-    <p class=col>The last row is why Airlock probes for
-      <code>requestUserInteraction</code> on both plausible receivers and falls back to a
-      direct dialog. An API that no published specification pins down should not be the
-      single point of failure for a demo's central claim.</p>
+    <p class=col>The <code>requestUserInteraction</code> row is the expensive one.
+      Airlock's first implementation called it from the execute callback's second
+      argument — which is <code>undefined</code>, so the consent gate threw on every
+      attempt. It now probes both plausible receivers and falls back to opening an
+      in-page modal directly. An API that no published specification pins down should
+      never be the single point of failure for a demo's central claim.</p>
+    <p class=col>Every row above is asserted by a 17-check Playwright suite against real
+      Chrome, including the exact error string for the object-input case. Chrome exposes
+      WebMCP only behind a flag, and rather than guess the Chromium feature name the
+      harness replicates the enabled lab experiments into a throwaway profile —
+      <code>{"browser":{"enabled_labs_experiments":["enable-webmcp-testing@1"]}}</code>
+      in that profile's <code>Local State</code>, which Chrome applies at startup exactly
+      as it would for a person who ticked the flag.</p>
   </div>
 </section>
 
