@@ -19,10 +19,14 @@ const NO_VOICE = argv.includes("--no-voice");
 // "say"    -- macOS built-in, no credentials
 // "gcp"    -- Cloud Text-to-Speech, needs a project you can use
 // "gemini" -- Gemini TTS via an AI Studio key in GEMINI_API_KEY; no IAM involved
+// "eleven" -- ElevenLabs, one request per line, so segmentation is exact and no
+//             silence-splitting is needed. Needs ELEVENLABS_API_KEY.
 // "file"   -- your own recording: .airlock-video/vo/00.wav .. 22.wav, one per line.
 //             Record a single take and run tools/split-vo.js to produce them.
 const TTS = arg("--tts", "say");
 const GEMINI_VOICE = arg("--gemini-voice", "Charon");
+const EL_VOICE = arg("--voice-id", "");                       // see --list-voices
+const EL_MODEL = arg("--eleven-model", "eleven_multilingual_v2");
 const GCP_VOICE = arg("--gcp-voice", "en-US-Chirp3-HD-Charon");
 const GCP_PROJECT = arg("--project", process.env.GOOGLE_CLOUD_PROJECT || "");
 
@@ -165,6 +169,21 @@ const SCRIPT = [
     extra: 0.9 }
 ];
 
+// `node tools/capture.js --list-voices` prints the voices on your ElevenLabs account.
+if (argv.includes("--list-voices")) {
+  const key = process.env.ELEVENLABS_API_KEY;
+  if (!key) { console.error("set ELEVENLABS_API_KEY first"); process.exit(1); }
+  const out = JSON.parse(execFileSync("curl",
+    ["-s", "https://api.elevenlabs.io/v1/voices", "-H", `xi-api-key: ${key}`],
+    { encoding: "utf8", maxBuffer: 1 << 24 }));
+  for (const v of out.voices || []) {
+    const labels = Object.values(v.labels || {}).filter(Boolean).join(", ");
+    console.log(`${v.voice_id}  ${(v.name || "").padEnd(18)} ${labels}`);
+  }
+  console.log(`\nUse:  node tools/capture.js --tts eleven --voice-id <id>`);
+  process.exit(0);
+}
+
 (async () => {
   // "file" mode reuses an existing vo/ directory, so don't wipe it
   if (TTS === "file") {
@@ -233,13 +252,38 @@ const SCRIPT = [
     fs.rmSync(pcm);
   }
 
+  // ElevenLabs, one request per line. Per-line synthesis means each clip is exactly one
+  // beat, so nothing has to be split on silence afterwards.
+  function synthEleven(text, wav) {
+    const key = process.env.ELEVENLABS_API_KEY;
+    if (!key) throw new Error("set ELEVENLABS_API_KEY to use --tts eleven");
+    if (!EL_VOICE) throw new Error("pass --voice-id (list them with --list-voices)");
+    const req = path.join(VO, "req.json");
+    fs.writeFileSync(req, JSON.stringify({
+      text, model_id: EL_MODEL,
+      voice_settings: { stability: 0.45, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true }
+    }));
+    const mp3 = wav.replace(".wav", ".mp3");
+    execFileSync("curl", ["-s", "-X", "POST",
+      `https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}?output_format=mp3_44100_128`,
+      "-H", `xi-api-key: ${key}`, "-H", "Content-Type: application/json",
+      "--data-binary", "@" + req, "-o", mp3], { stdio: ["ignore", "pipe", "pipe"] });
+    fs.rmSync(req);
+    const head = fs.readFileSync(mp3).subarray(0, 200).toString("utf8");
+    if (head.trimStart().startsWith("{")) throw new Error("ElevenLabs: " + head.slice(0, 240));
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", mp3, "-ar", "44100", "-ac", "2", wav]);
+    fs.rmSync(mp3);
+  }
+
   const clips = SCRIPT.map((b, i) => {
     if (NO_VOICE) return { len: 2.8 };
     const wav = path.join(VO, String(i).padStart(2, "0") + ".wav");
     if (TTS === "file") {
       return { file: wav, len: dur(wav) };          // your own voice, already recorded
     }
-    if (TTS === "gcp") {
+    if (TTS === "eleven") {
+      synthEleven(b.vo, wav);
+    } else if (TTS === "gcp") {
       synthGcp(b.vo, wav);
     } else if (TTS === "gemini") {
       synthGemini(b.vo, wav);
@@ -259,7 +303,8 @@ const SCRIPT = [
   const projected = spoken + overhead;
   const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
   console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
-    + (TTS === "gcp" ? `(Cloud TTS ${GCP_VOICE})`
+    + (TTS === "eleven" ? `(ElevenLabs ${EL_MODEL})`
+       : TTS === "gcp" ? `(Cloud TTS ${GCP_VOICE})`
        : TTS === "gemini" ? `(Gemini TTS ${GEMINI_VOICE})`
        : TTS === "file" ? "(your own recording)"
        : `(say ${VOICE} at ${RATE} wpm)`));

@@ -83,6 +83,10 @@ enabled. To point at a different partner origin: `?b=https://partner.example/`.
 npm run capture                        # synthesise narration, record, mix
 node tools/capture.js --no-voice       # picture only
 node tools/capture.js --tts file       # use your own recording
+
+# or synthesise with a hosted voice
+ELEVENLABS_API_KEY=... node tools/capture.js --tts eleven --voice-id <id>
+GEMINI_API_KEY=...     node tools/capture.js --tts gemini --gemini-voice Charon
 ```
 
 `tools/capture.js` drives the real product through the same WebMCP calls an agent makes,

@@ -170,6 +170,34 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 ---
 
+## Using ElevenLabs
+
+**Best route — the API, one request per line.** Each clip is exactly one beat, so nothing
+has to be split afterwards and the timing is perfect:
+
+```bash
+export ELEVENLABS_API_KEY='...'
+node tools/capture.js --list-voices                      # ids and labels on your account
+node tools/capture.js --tts eleven --voice-id <id>
+```
+
+`eleven_multilingual_v2` is the default model; override with `--eleven-model`. Voice
+settings are set for narration (stability 0.45, similarity 0.75, speaker boost on) — edit
+`synthEleven` in `tools/capture.js` if you want them different.
+
+**Or the web UI.** Paste `docs/NARRATION-paste.txt`, which is the same script with
+`<break time="1.2s" />` between lines so the pauses are clean and even. Download the mp3,
+then:
+
+```bash
+node tools/split-vo.js ~/Downloads/airlock.mp3
+node tools/capture.js --tts file
+```
+
+Pick a voice that reads *explanatory*, not *promotional* — this is a technical
+explanation, and an over-produced trailer read will undercut it. A measured, slightly dry
+delivery suits the argument better than enthusiasm.
+
 ## If you would rather not record it
 
 ```bash
