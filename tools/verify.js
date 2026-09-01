@@ -69,8 +69,8 @@ const check = (name, pass, detail = "") => {
              fromB: all.filter(t => t.origin === o).map(t => t.name).sort(),
              keys: all[0] ? Object.keys(all[0]).sort() : [] };
   }, B_ORIGIN);
-  check("B's 3 tools discoverable across the origin boundary",
-        disco.fromB.length === 3, disco.fromB.join(", "));
+  check("B's 4 capabilities discoverable across the origin boundary",
+        disco.fromB.length === 4, disco.fromB.join(", "));
   console.log(`      note: fromOrigins is additive — returned ${disco.total} total`);
   console.log(`      note: RegisteredTool keys = {${disco.keys.join(", ")}}`);
 
@@ -135,12 +135,16 @@ const check = (name, pass, detail = "") => {
     document.body.appendChild(b);
   });
   await page.click("#__drive");
-  await page.waitForSelector("#veil.on", { timeout: 5000 });   // operator modal is visible
-  await page.click("#myes");                                    // operator approves
+  await page.waitForSelector("#veil.on", { timeout: 5000 });    // this side's operator
+  await page.click("#myes");
+  const partnerFrame = page.frameLocator("#f");                 // the partner's own console
+  await partnerFrame.locator("#bveil.on").waitFor({ timeout: 8000 });
+  check("approval request crossed to the partner's console", true);
+  await partnerFrame.locator("#byes").click();                  // their governance officer
   await page.waitForFunction(() => window.__consent !== undefined, null, { timeout: 8000 })
     .catch(() => {});
   const consent = await page.evaluate(() => window.__consent);
-  check("consent granted through requestUserInteraction", consent?.granted === true,
+  check("approval granted by BOTH operators", consent?.granted === true,
         JSON.stringify(consent));
 
   const after = await page.evaluate(() => document.modelContext.getTools()
@@ -156,7 +160,9 @@ const check = (name, pass, detail = "") => {
       JSON.stringify({ cohortId: "2", segment: "sports-fans" }));
     return JSON.parse(JSON.parse(raw).content[0].text);
   });
-  check("estimate_overlap returns an aggregate", est.overlap > 0, JSON.stringify(est));
+  check("estimate_overlap returns an aggregate", est.overlap > 0,
+        `overlap=${est.overlap} reach=${est.publisherReach} records=${est.records}`);
+  check("no records are transferred", est.records === "never transferred");
   check("partner note is tagged untrusted", /untrusted/.test(est.partnerNoteTrust || ""));
 
   // ── revocation ───────────────────────────────────────────────────
