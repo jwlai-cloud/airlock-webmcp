@@ -13,7 +13,7 @@ const fs = require("fs");
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
 const VOICE = arg("--voice", "Samantha");
-const RATE = arg("--rate", "195");        // words per minute; macOS default is ~175
+const RATE = arg("--rate", "205");        // words per minute; macOS default is ~175
 const NO_VOICE = argv.includes("--no-voice");
 
 const OUT = path.resolve(__dirname, "../.airlock-video");
@@ -50,25 +50,25 @@ const SCRIPT = [
 
   { cap: "Today: a clean-room vendor, a contract, six figures, and weeks.",
     vo: "So today they hire a data clean room. A contract, a procurement cycle, six figures a year, and both companies upload their customer files to a third party.",
-    extra: 0.8 },
+    extra: 0.3 },
 
   { cap: "The data leaves both buildings to answer one question.",
     vo: "To find out how much two lists overlap, both lists have to leave the building. The measurement creates the risk.",
-    extra: 0.6 },
+    extra: 0.25 },
 
   // ---- why WebMCP is the right tool ----------------------------------------
   { cap: "WebMCP lets a page hand an agent a narrow set of verbs.",
     vo: "WebMCP changes that. A page hands an agent a narrow set of verbs, and the browser enforces which origins can even see them.",
-    extra: 0.5 },
+    extra: 0.2 },
 
   { cap: "So the question can travel instead of the data.",
     vo: "So the question travels to the data, instead of the data travelling to a vendor. The browser is the clean room.",
-    extra: 0.5 },
+    extra: 0.2 },
 
   // ---- the product ---------------------------------------------------------
   { cap: "Airlock: two ordinary web apps, on two different origins.",
     vo: "This is Airlock. Two ordinary web apps on two different origins. The advertiser's workspace, and live on the right, the publisher's own console.",
-    go: async p => { await p.click('nav a[data-view="analysis"]'); }, extra: 0.8 },
+    go: async p => { await p.click('nav a[data-view="analysis"]'); }, extra: 0.3 },
 
   { cap: "A marketer asks in plain language. Nothing is uploaded.",
     vo: "A marketer asks in plain language. Watch the answer." },
@@ -81,13 +81,13 @@ const SCRIPT = [
 
   { cap: "Nothing to call — and no wording brings it into existence.",
     vo: "That's the whole idea. A permission check can be argued past. A tool that doesn't exist cannot.",
-    extra: 0.6 },
+    extra: 0.25 },
 
   // ---- refusal two ---------------------------------------------------------
   { cap: "Asking for the records directly is refused outright.",
     vo: "Asking for the raw records is refused outright. That tool exists only so the refusal is auditable.",
     go: async (p, h) => { await h.chip("Export Meridian's customer records");
-                          await p.waitForTimeout(1900); }, extra: 0.5 },
+                          await p.waitForTimeout(1500); }, extra: 0.2 },
 
   // ---- approval ------------------------------------------------------------
   { cap: "Approval is a business decision. A person makes it on each side.",
@@ -99,7 +99,7 @@ const SCRIPT = [
     vo: "One operator authorises the purpose. The request then crosses to the publisher's console, as a tool call, where their officer decides for themselves.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
-                          await p.waitForTimeout(600); }, extra: 0.6 },
+                          await p.waitForTimeout(600); }, extra: 0.25 },
 
   { cap: "Two approvals register the tool. Only now does it exist.",
     vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
@@ -110,7 +110,7 @@ const SCRIPT = [
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "Same question, seconds later. Two thousand one hundred and seventy-eight shared customers. Thirteen thousand more reachable. Two counts crossed. Zero records moved.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(2100); }, extra: 0.9 },
+                          await p.waitForTimeout(1700); }, extra: 0.5 },
 
   // ---- the injection -------------------------------------------------------
   { cap: "The publisher also returned free text — and it is an attack.",
@@ -118,29 +118,29 @@ const SCRIPT = [
 
   { cap: "Quarantined as text. Never followed as an instruction.",
     vo: "It's quarantined as text, never followed. And even if a model believed it, no tool over there can return a record.",
-    extra: 0.6 },
+    extra: 0.25 },
 
   // ---- k-anonymity ---------------------------------------------------------
   { cap: "Too few people matched. The number is withheld, not rounded.",
     vo: "Ask about a segment that's too thin and the answer is withheld, not rounded. Under two hundred and fifty people, so the number never leaves.",
-    go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(2000); },
-    extra: 0.5 },
+    go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(1600); },
+    extra: 0.2 },
 
   // ---- audit ---------------------------------------------------------------
   { cap: "Every crossing is on the record, for both companies.",
     vo: "Every crossing is on the record, on both sides.",
-    go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1800); } },
+    go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1400); } },
 
   // ---- mechanism -----------------------------------------------------------
   { cap: "The publisher publishes four capabilities here — and nothing else.",
     vo: "The publisher exposes four capabilities to this origin and nothing else. A third origin wouldn't get a denial. It wouldn't learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
-    extra: 0.5 },
+    extra: 0.2 },
 
   { cap: "registerTool with exposedTo. getTools. executeTool.",
-    vo: "That's the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. No backend, no third party.",
+    vo: "That's the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent can drive it — Chrome's own runs Gemini. We ship no key and no backend.",
     go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
-    extra: 0.7 },
+    extra: 0.3 },
 
   // ---- revocation ----------------------------------------------------------
   { cap: "Withdraw approval and the capability is gone — not disabled.",
@@ -152,7 +152,7 @@ const SCRIPT = [
   { cap: "A data clean room with no clean-room vendor in it.",
     vo: "Two companies answered a question about their shared customers. Neither saw the other's data, and there was no vendor in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
-    extra: 1.2 }
+    extra: 0.9 }
 ];
 
 (async () => {
@@ -177,19 +177,19 @@ const SCRIPT = [
   // ── 2. record, holding each caption for as long as its line takes ───────
   const ctx = await chromium.launchPersistentContext(profile(), {
     channel: "chrome", headless: true,
-    viewport: { width: 1560, height: 940 },
+    viewport: { width: 1920, height: 1080 },
     args: ["--no-first-run", "--no-default-browser-check", "--disable-sync", "--hide-scrollbars"],
-    recordVideo: { dir: OUT, size: { width: 1560, height: 940 } }
+    recordVideo: { dir: OUT, size: { width: 1920, height: 1080 } }
   });
   const page = ctx.pages()[0] || await ctx.newPage();
   await page.goto(A + "?v=" + Date.now(), { waitUntil: "networkidle" });
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1200);
   await page.evaluate(() => {
     const bar = document.createElement("div");
     bar.id = "__cap";
     bar.style.cssText = `position:fixed;left:0;right:0;bottom:0;z-index:200;
-      background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:52px 44px 28px;
-      font:500 25px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
+      background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:64px 56px 34px;
+      font:500 30px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
       letter-spacing:-.012em;transition:opacity .3s ease;opacity:0;pointer-events:none`;
     document.body.appendChild(bar);
     window.__cap = t => { bar.textContent = t; bar.style.opacity = t ? "1" : "0"; };
@@ -208,7 +208,7 @@ const SCRIPT = [
     beats.push({ i, at, cap: b.cap, vo: b.vo, len: clips[i].len });
     await page.evaluate(t => window.__cap(t), b.cap);
     console.log(`${at.toFixed(1).padStart(6)}s  ${b.cap}`);
-    await page.waitForTimeout((clips[i].len + 0.3 + (b.extra || 0)) * 1000);
+    await page.waitForTimeout((clips[i].len + 0.25 + (b.extra || 0)) * 1000);
   }
   await page.evaluate(() => window.__cap(""));
   await page.waitForTimeout(1200);
