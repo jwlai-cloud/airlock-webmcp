@@ -1,32 +1,36 @@
 # Narration script — read this aloud
 
-**23 lines, 393 words.** Aim for **about 2:15 of speech**; the picture adds
-roughly 30 seconds on top, and the finished video must come in **under 3:00**. Read at a
-brisk, natural pace — think explaining it to a colleague, not presenting to a room.
-Do not add asides; the cut has no slack for them.
+**23 lines, 399 words.** Aim for about **2:23 of speech**; the picture adds
+roughly 28 seconds and the finished video must be **under 3:00**. Read at a brisk,
+natural pace. Do not add asides — there is no slack for them.
+
+> **Speed matters.** A first take at ElevenLabs speed 1.20 read at 213 wpm, which is
+> too fast for a technical explanation. Render at **speed 1.00**.
 
 ## How to record
 
-**One continuous take.** Read the numbered lines in order and leave a clear pause —
-about a second of silence — between each. Do not read the numbers aloud. If you fluff a
-line, pause and read it again; you can drop the bad take when you check the split.
-
-Save it anywhere (`.m4a`, `.wav`, `.mp3`) and give me the path, or run it yourself:
+**ElevenLabs, via the API** — one request per line, exact segmentation, nothing to split:
 
 ```bash
-node tools/split-vo.js ~/Desktop/airlock-vo.m4a   # splits on your pauses
-node tools/capture.js --tts file                  # re-cuts the video to your voice
+export ELEVENLABS_API_KEY=...
+node tools/capture.js --list-voices
+node tools/capture.js --tts eleven --voice-id <id>
 ```
 
-`capture.js` projects the runtime before it records, so a read that runs long is caught
-in a second rather than after a three-minute render. If the splitter finds the wrong
-number of segments, retune it instead of re-recording:
-`node tools/split-vo.js <file> 0.4 -30dB`.
+**ElevenLabs, via the web UI** — paste `docs/NARRATION-paste.txt` (break tags already
+between lines), download the mp3, then:
 
-A full render takes about four minutes, so run it in a terminal you will leave alone.
+```bash
+node tools/split-vo.js ~/Downloads/airlock.mp3
+node tools/capture.js --tts file
+```
 
-Quiet room; a phone voice memo or a headset is fine — consistency beats a good
-microphone. **No music**: the rules forbid copyrighted audio, and the cut needs none.
+**Your own voice** — one continuous take, a clear pause between lines, do not read the
+numbers. Same two commands. A full render takes about four minutes, so run it in a
+terminal you will leave alone.
+
+Pick a voice that reads *explanatory*, not *promotional*. No music — the rules forbid
+copyrighted audio and the cut needs none.
 
 ---
 
@@ -34,7 +38,7 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 ### 1
 
-> Two companies have customers in common, and a question neither of them can answer alone. How many do we share? And how many more could we reach?
+> Two companies share customers, and neither can say how many. The most basic question in a partnership.
 
 <sub>on screen: Two companies. One question neither can answer.</sub>
 
@@ -42,47 +46,47 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 > Answering it means comparing two customer lists. Neither is allowed to show the other its list.
 
-<sub>on screen: Neither is allowed to see the other's customer records.</sub>
+<sub>on screen: Neither may show the other its customer list.</sub>
 
 ### 3
 
-> So today they hire a data clean room. Six figures a year, and both companies upload their customer files to a third party.
+> So today they hire a data clean room. Six figures a year, and both upload their customer files to a third party.
 
-<sub>on screen: Today: a clean-room vendor, a contract, six figures, and weeks.</sub>
+<sub>on screen: Today: a clean-room vendor, a contract, six figures.</sub>
 
 ### 4
 
-> To measure an overlap safely, both lists leave the building. The measurement creates the risk.
+> To measure the overlap safely, both lists leave the building. The measurement creates the risk.
 
-<sub>on screen: The data leaves both buildings to answer one question.</sub>
+<sub>on screen: To measure the overlap, both lists leave the building.</sub>
 
 ### 5
 
-> WebMCP changes that. A page hands an agent a narrow set of verbs, and the browser enforces which origins can see them.
+> Airlock starts as an ordinary web app. A marketing team's workspace, with its own audiences and its own buttons.
 
-<sub>on screen: WebMCP lets a page hand an agent a narrow set of verbs.</sub>
+<sub>on screen: Airlock starts as an ordinary web app.</sub>
 
 ### 6
 
-> So the question travels to the data. The browser is the clean room.
+> WebMCP lets it write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.
 
-<sub>on screen: So the question can travel instead of the data.</sub>
+<sub>on screen: WebMCP lets the app write down what it can do.</sub>
 
 ### 7
 
-> This is Airlock. Two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.
+> So an agent operates the product directly, instead of reading the screen and guessing.
 
-<sub>on screen: Airlock: two ordinary web apps, on two different origins.</sub>
+<sub>on screen: So an agent operates the product — no screenshots, no guessing.</sub>
 
 ### 8
 
-> A marketer asks in plain language.
+> But this question needs a second app, owned by another company, on another origin. Live on the right, in a cross-origin frame.
 
-<sub>on screen: A marketer asks in plain language. Nothing is uploaded.</sub>
+<sub>on screen: But this answer needs a second app, at another company.</sub>
 
 ### 9
 
-> It cannot. The tool that crosses the boundary is not registered, so it is not in the agent's tool list.
+> A marketer asks in plain language. The agent cannot answer: the tool that crosses the boundary is not registered, so it is not in its list.
 
 <sub>on screen: The tool that crosses the boundary is not registered yet.</sub>
 
@@ -106,7 +110,7 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 ### 13
 
-> The request crosses to the publisher's console as a tool call, where their officer decides independently.
+> The request crosses to the publisher's console as a tool call. Their officer decides independently.
 
 <sub>on screen: The request crosses to the publisher's console as a tool call.</sub>
 
@@ -136,7 +140,7 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 ### 18
 
-> Ask about a segment too thin to be safe, and the answer is withheld rather than rounded.
+> Ask about a segment too thin to be safe, and the answer is withheld, not rounded.
 
 <sub>on screen: Too few people matched. The number is withheld, not rounded.</sub>
 
@@ -148,13 +152,13 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 ### 20
 
-> The publisher exposes four capabilities here and nothing else. A third origin would not get a denial. It would not learn they exist.
+> The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.
 
 <sub>on screen: The publisher publishes four capabilities here — and nothing else.</sub>
 
 ### 21
 
-> That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it. We ship no key and no backend.
+> That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.
 
 <sub>on screen: registerTool with exposedTo. getTools. executeTool.</sub>
 
@@ -166,44 +170,7 @@ microphone. **No music**: the rules forbid copyrighted audio, and the cut needs 
 
 ### 23
 
-> Two companies answered a question about their shared customers. Neither saw the other's data, and no vendor sat in between. Airlock.
+> Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.
 
 <sub>on screen: A data clean room with no clean-room vendor in it.</sub>
 
----
-
-## Using ElevenLabs
-
-**Best route — the API, one request per line.** Each clip is exactly one beat, so nothing
-has to be split afterwards and the timing is perfect:
-
-```bash
-export ELEVENLABS_API_KEY='...'
-node tools/capture.js --list-voices                      # ids and labels on your account
-node tools/capture.js --tts eleven --voice-id <id>
-```
-
-`eleven_multilingual_v2` is the default model; override with `--eleven-model`. Voice
-settings are set for narration (stability 0.45, similarity 0.75, speaker boost on) — edit
-`synthEleven` in `tools/capture.js` if you want them different.
-
-**Or the web UI.** Paste `docs/NARRATION-paste.txt`, which is the same script with
-`<break time="1.2s" />` between lines so the pauses are clean and even. Download the mp3,
-then:
-
-```bash
-node tools/split-vo.js ~/Downloads/airlock.mp3
-node tools/capture.js --tts file
-```
-
-Pick a voice that reads *explanatory*, not *promotional* — this is a technical
-explanation, and an over-produced trailer read will undercut it. A measured, slightly dry
-delivery suits the argument better than enthusiasm.
-
-## If you would rather not record it
-
-```bash
-npm run capture                                     # macOS Karen (Premium)
-node tools/capture.js --voice "Lee (Premium)"       # any installed voice
-GEMINI_API_KEY=... node tools/capture.js --tts gemini --gemini-voice Charon
-```

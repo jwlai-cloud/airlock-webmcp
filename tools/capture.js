@@ -54,63 +54,62 @@ const dur = f => parseFloat(sh("ffprobe",
    read aloud over it. `go` runs before the caption appears. `extra` adds hold on
    top of the spoken length, for beats where the screen needs longer than the line. */
 const SCRIPT = [
-  // ---- the pain point, first -----------------------------------------------
+  // ---- the problem -------------------------------------------------------
   { cap: "Two companies. One question neither can answer.",
-    vo: "Two companies have customers in common, and a question neither of them can answer alone. How many do we share? And how many more could we reach?",
+    vo: "Two companies share customers, and neither can say how many. The most basic question in a partnership.",
     go: async p => { await p.click('nav a[data-view="overview"]'); } },
 
-  { cap: "Neither is allowed to see the other's customer records.",
+  { cap: "Neither may show the other its customer list.",
     vo: "Answering it means comparing two customer lists. Neither is allowed to show the other its list." },
 
-  { cap: "Today: a clean-room vendor, a contract, six figures, and weeks.",
-    vo: "So today they hire a data clean room. Six figures a year, and both companies upload their customer files to a third party.",
+  { cap: "Today: a clean-room vendor, a contract, six figures.",
+    vo: "So today they hire a data clean room. Six figures a year, and both upload their customer files to a third party." },
+
+  { cap: "To measure the overlap, both lists leave the building.",
+    vo: "To measure the overlap safely, both lists leave the building. The measurement creates the risk." },
+
+  // ---- it is an ordinary web app, with declared actions -------------------
+  { cap: "Airlock starts as an ordinary web app.",
+    vo: "Airlock starts as an ordinary web app. A marketing team's workspace, with its own audiences and its own buttons." },
+
+  { cap: "WebMCP lets the app write down what it can do.",
+    vo: "WebMCP lets it write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
+    go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
     extra: 0.3 },
 
-  { cap: "The data leaves both buildings to answer one question.",
-    vo: "To measure an overlap safely, both lists leave the building. The measurement creates the risk.",
-    extra: 0.25 },
+  { cap: "So an agent operates the product — no screenshots, no guessing.",
+    vo: "So an agent operates the product directly, instead of reading the screen and guessing.",
+    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(600); } },
 
-  // ---- why WebMCP is the right tool ----------------------------------------
-  { cap: "WebMCP lets a page hand an agent a narrow set of verbs.",
-    vo: "WebMCP changes that. A page hands an agent a narrow set of verbs, and the browser enforces which origins can see them.",
-    extra: 0.2 },
+  // ---- the twist: the answer needs a second app --------------------------
+  { cap: "But this answer needs a second app, at another company.",
+    vo: "But this question needs a second app, owned by another company, on another origin. Live on the right, in a cross-origin frame.",
+    extra: 0.3 },
 
-  { cap: "So the question can travel instead of the data.",
-    vo: "So the question travels to the data. The browser is the clean room.",
-    extra: 0.2 },
 
-  // ---- the product ---------------------------------------------------------
-  { cap: "Airlock: two ordinary web apps, on two different origins.",
-    vo: "This is Airlock. Two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.",
-    go: async p => { await p.click('nav a[data-view="analysis"]'); }, extra: 0.3 },
-
-  { cap: "A marketer asks in plain language. Nothing is uploaded.",
-    vo: "A marketer asks in plain language." },
-
-  // ---- refusal one ---------------------------------------------------------
+  // ---- refusal one -------------------------------------------------------
   { cap: "The tool that crosses the boundary is not registered yet.",
-    vo: "It cannot. The tool that crosses the boundary is not registered, so it is not in the agent's tool list.",
+    vo: "A marketer asks in plain language. The agent cannot answer: the tool that crosses the boundary is not registered, so it is not in its list.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1500); } },
+                          await p.waitForTimeout(1500); }, extra: 0.3 },
 
   { cap: "Nothing to call — and no wording brings it into existence.",
-    vo: "That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.",
-    extra: 0.25 },
+    vo: "That is the whole idea. A permission check can be argued past. A tool that does not exist cannot." },
 
-  // ---- refusal two ---------------------------------------------------------
+  // ---- refusal two -------------------------------------------------------
   { cap: "Asking for the records directly is refused outright.",
     vo: "Asking for the raw records is refused outright.",
     go: async (p, h) => { await h.chip("Export Meridian's customer records");
-                          await p.waitForTimeout(1500); }, extra: 0.2 },
+                          await p.waitForTimeout(1500); } },
 
-  // ---- approval ------------------------------------------------------------
+  // ---- approval ----------------------------------------------------------
   { cap: "Approval is a business decision. A person makes it on each side.",
     vo: "So it asks for approval. A person decides, on each side.",
     go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
                           await p.waitForSelector("#veil.on"); await p.waitForTimeout(500); } },
 
   { cap: "The request crosses to the publisher's console as a tool call.",
-    vo: "The request crosses to the publisher's console as a tool call, where their officer decides independently.",
+    vo: "The request crosses to the publisher's console as a tool call. Their officer decides independently.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
                           await p.waitForTimeout(600); }, extra: 0.25 },
@@ -120,13 +119,13 @@ const SCRIPT = [
     go: async (p, h) => { await h.partner.locator("#byes").click();
                           await p.waitForTimeout(1100); } },
 
-  // ---- the answer ----------------------------------------------------------
+  // ---- the answer --------------------------------------------------------
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
                           await p.waitForTimeout(1700); }, extra: 0.5 },
 
-  // ---- the injection -------------------------------------------------------
+  // ---- the injection -----------------------------------------------------
   { cap: "The publisher also returned free text — and it is an attack.",
     vo: "The publisher also returned a note. It is a prompt injection, telling the agent to export everything." },
 
@@ -134,37 +133,38 @@ const SCRIPT = [
     vo: "It is quarantined as text, never followed. And no tool over there can return a record anyway.",
     extra: 0.25 },
 
-  // ---- k-anonymity ---------------------------------------------------------
+  // ---- k-anonymity -------------------------------------------------------
   { cap: "Too few people matched. The number is withheld, not rounded.",
-    vo: "Ask about a segment too thin to be safe, and the answer is withheld rather than rounded.",
+    vo: "Ask about a segment too thin to be safe, and the answer is withheld, not rounded.",
     go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(1600); },
     extra: 0.2 },
 
-  // ---- audit ---------------------------------------------------------------
+  // ---- audit -------------------------------------------------------------
   { cap: "Every crossing is on the record, for both companies.",
     vo: "Every crossing is on the record, on both sides.",
     go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1400); } },
 
-  // ---- mechanism -----------------------------------------------------------
+  // ---- mechanism ---------------------------------------------------------
   { cap: "The publisher publishes four capabilities here — and nothing else.",
-    vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial. It would not learn they exist.",
+    vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
     extra: 0.2 },
 
   { cap: "registerTool with exposedTo. getTools. executeTool.",
-    vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it. We ship no key and no backend.",
-    go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
-    extra: 0.3 },
+    vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.",
+    go: async (p, h) => { await h.showDiagram("airlock-architecture.png"); },
+    extra: 0.5 },
 
-  // ---- revocation ----------------------------------------------------------
+  // ---- revocation --------------------------------------------------------
   { cap: "Withdraw approval and the capability is gone — not disabled.",
     vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
-    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);
+    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(450);
+                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);
                      await p.click("#btn-revoke"); await p.waitForTimeout(1200); } },
 
-  // ---- close ---------------------------------------------------------------
+  // ---- close -------------------------------------------------------------
   { cap: "A data clean room with no clean-room vendor in it.",
-    vo: "Two companies answered a question about their shared customers. Neither saw the other's data, and no vendor sat in between. Airlock.",
+    vo: "Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
     extra: 0.9 }
 ];
@@ -336,9 +336,39 @@ if (argv.includes("--list-voices")) {
     window.__cap = t => { bar.textContent = t; bar.style.opacity = t ? "1" : "0"; };
   });
 
+  // A diagram cut for the beats that describe the mechanism rather than show it. The
+  // PNG is injected as a data URI because the page is served over http and cannot read
+  // file://. The caption bar sits above it, so the lower third keeps working.
+  async function showDiagram(file) {
+    const b64 = fs.readFileSync(path.resolve(__dirname, "../docs/diagrams", file)).toString("base64");
+    await page.evaluate(src => {
+      let el = document.getElementById("__diag");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "__diag";
+        el.style.cssText = `position:fixed;inset:0;z-index:150;background:#F2F5F4;
+          display:grid;place-items:center;padding:2.5vh 2.5vw;opacity:0;
+          transition:opacity .45s ease`;
+        const img = document.createElement("img");
+        img.id = "__diagimg";
+        img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain";
+        el.appendChild(img);
+        document.body.appendChild(el);
+      }
+      document.getElementById("__diagimg").src = src;
+      requestAnimationFrame(() => { el.style.opacity = "1"; });
+    }, "data:image/png;base64," + b64);
+    await page.waitForTimeout(500);
+  }
+  const hideDiagram = () => page.evaluate(() => {
+    const el = document.getElementById("__diag");
+    if (el) el.style.opacity = "0";
+  });
+
   const helpers = {
     partner: page.frameLocator("#f"),
-    chip: label => page.click(`.chips button:text-is("${label}")`)
+    chip: label => page.click(`.chips button:text-is("${label}")`),
+    showDiagram, hideDiagram
   };
   const t0 = Date.now();
   const beats = [];

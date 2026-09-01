@@ -92,22 +92,45 @@ what makes it robust to prompt injection instead of merely resistant to it.
 
 ## Why WebMCP is a strong fit, and how it improves the experience
 
-Three properties of the API do the work, and no other integration style has all three:
+**Start with the ordinary case, because Airlock is one.** Origin A is a normal marketing
+application. A person opens it, picks an audience and a partner segment, and reads a
+result. WebMCP lets that application write down what it can do, so an agent operates the
+product instead of reading the screen and guessing at it:
 
-- **`exposedTo` is a capability, not an ACL.** Meridian publishes four capabilities to
-  Northwind's origin and nothing else. A third origin does not receive a denial — it does
-  not learn the tools exist, so there is no error message to probe.
+| What the person clicks | What the app declares |
+|---|---|
+| Audiences | `list_cohorts` |
+| Request partner approval | `request_partner_consent` |
+| Run analysis | `estimate_overlap` |
+| Check reach *(a plain `<form>`)* | `check_segment_reach` — declarative, no JavaScript |
+| Audit trail | `get_receipts` |
+
+Every button in the UI calls the tool through `executeTool()`. There is no second
+implementation for agents and no back door for either — the human path and the agent path
+are the same code by construction.
+
+**Then the part that is new.** Answering this particular question needs a *second*
+application, owned by a different company, on a different origin. WebMCP's `exposedTo` is
+what makes that possible, and it is the least-exercised corner of the API:
+
+- **`exposedTo` is a capability, not an access-control check.** Meridian publishes four
+  capabilities to Northwind's origin and nothing else. A third origin does not receive a
+  denial — it does not learn the tools exist, so there is no error message to probe.
 - **Tools execute in the registering page's own context.** Meridian's aggregate is computed
   inside Meridian's page, over Meridian's records, in a session Meridian's own operator is
   already signed into. There is no key to hand the agent and nothing to serialise out.
-- **The tool list is live.** Registration and unregistration fire `toolchange`, so the set
-  of things an agent may do changes with the state of the page.
+- **The tool list is live.** Registration and unregistration fire `toolchange`, so what an
+  agent may do changes with the state of the page.
 
-For the person using it, that means asking a partnership question in plain language and
-getting an answer in seconds, with a visible audit trail — instead of a procurement
-cycle. For the data owner, it means their governance officer sees the stated purpose and
-decides, in their own interface, with a standing guarantee no tool they published can emit
-a record.
+That last property is normally a convenience — a logged-out visitor's agent sees read-only
+tools, and signing in adds the rest. Airlock gates on a **business approval from two
+companies** instead of a login, which turns the same mechanism into a privacy boundary.
+
+For the person using it, this means asking a partnership question in plain language and
+getting an answer in seconds, with a visible audit trail, instead of a procurement cycle.
+For the data owner, it means their governance officer sees the stated purpose and decides
+in their own interface, with a standing guarantee that no tool they published can emit a
+record.
 
 ## How we implemented WebMCP
 
