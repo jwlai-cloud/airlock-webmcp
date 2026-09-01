@@ -35,25 +35,50 @@
 - **Scraped and read the official rules and resources.** License detected as MIT in the
   repo's About section — requirement satisfied.
 
+### Later on 2026-09-01 — verification
+
+Built `tools/verify.js` (Playwright, real Chrome via `channel: "chrome"`). Chrome exposes
+WebMCP only behind a flag; rather than guess the Chromium feature name, the harness writes
+`{"browser":{"enabled_labs_experiments":["enable-webmcp-testing@1","devtools-webmcp-support@1"]}}`
+into a throwaway profile's `Local State`, which Chrome applies at startup exactly as it
+would for a person who ticked the flag. 17 checks, all passing. `npm run verify`.
+
+It disproved three things this repo asserted:
+
+1. **`requestUserInteraction` does not exist in Chrome 152** — on `document.modelContext`
+   or anywhere else. The execute callback's second argument is `undefined`, not even the
+   spec'd `{signal}`. The consent gate threw on every attempt. Consent now opens an
+   in-page modal, which is also filmable and stylable where `confirm()` was neither.
+2. **`getTools({fromOrigins})` is additive, not a filter** — returns the caller's own
+   tools plus the listed origins'. Filter on `t.origin`.
+3. **Cross-origin registration completes after the partner iframe's `load` event**, so
+   sampling once reports a false negative. Polls now.
+
+Also: 7× `toolchange fired` buried the activity panel at startup (coalesced); origin A's
+ledger claimed to log every crossing when it can only log ones it brokers (relabelled);
+and every cohort returned 2178, so the k-anonymity floor was unreachable without naming
+a nonexistent segment — added a rare `luxury-auto-intenders` segment so the never-cut
+suppression rule is actually demonstrable.
+
+`tools/capture.js` records the demo by driving the live UI with the same WebMCP calls an
+agent makes. First cut is 82s (cap is 3:00), in `.airlock-video/` (gitignored). Beat
+timings in `beats.json` for writing narration against.
+
 ### Next, in order
 
-1. **Verify the consent path in flag-enabled Chrome.** Which branch
-   `withUserInteraction` takes is unknown until someone runs it. This gates the
-   submission's central claim; do it before anything else.
-2. **Second HTTPS origin.** All repos under one GitHub account share one Pages origin,
+1. **Second HTTPS origin.** All repos under one GitHub account share one Pages origin,
    so the pair cannot both live there. Cloudflare Pages, Vercel, Render and Netlify are
    all sponsor-listed and acceptable. Network to all four APIs is reachable from this
    shell now — the earlier Netlify block was transient. Needs the operator to
    authenticate.
-3. Exercise both refusal paths end to end against the deployed pair.
-4. Video, then submission text.
+2. Re-run `npm run verify` against the deployed HTTPS pair, not just localhost.
+3. Record narration over the 82s cut; the beat timings are in `.airlock-video/beats.json`.
+4. Submission text.
 
 ### Open questions
 
-- **Does `requestUserInteraction` live on the execute callback's options argument or on
-  `document.modelContext`?** Unresolved from documentation — neither the W3C IDL nor
-  Chrome's docs mention it at all. Mitigated in code, but the answer should be recorded
-  here once observed, and the LEARNING.md errata table updated.
+- ~~Where does `requestUserInteraction` live?~~ **Resolved: nowhere.** It is absent from
+  Chrome 152 entirely. Recorded in SPEC §6, LEARNING.md and the handbook.
 - **Untested in ChatGPT's in-app browser.** Not fatal; the brief accepts Chrome 149+.
 
 ### Notes for the write-up
