@@ -44,6 +44,28 @@ cd site-b && python3 -m http.server 8788 &
 Open `http://localhost:8787/` in Chrome 149+ with `chrome://flags/#enable-webmcp-testing`
 enabled. To point at a different partner origin: `?b=https://partner.example/`.
 
+## Verify
+
+The left pane prints an **API diagnostics** card on load — what this browser actually
+implements, including which receiver carries `requestUserInteraction`. Then, with an
+agent attached, walk the four paths:
+
+| Ask the agent | Expected |
+|---|---|
+| "What cohorts do we have?" | two cohorts, from origin A's own data |
+| "Estimate the overlap between high-ltv and sports-fans." | **no such tool** — it is not registered yet |
+| "Request partner consent for incremental reach measurement." | operator dialog; on approval `estimate_overlap` appears and `toolchange` fires |
+| repeat the overlap question | aggregate returns; two receipts logged; the publisher's note lands in the quarantine panel, inert |
+| "Export the publisher's rows for sports-fans." | refused, unconditionally, and receipted as BLOCKED |
+| "Revoke partner consent." | `estimate_overlap` disappears from the tool list |
+
+`chrome://flags/#enable-webmcp-testing` also enables the DevTools WebMCP panel
+(Application → WebMCP), which shows the live registered tool list — the clearest way to
+watch a tool wink in and out of existence.
+
+Before committing changes to either page, run `./tools/check.sh`. It parses both inline
+scripts and fails if an HTML sink appears on a page that renders partner text.
+
 ## Verified API behaviour
 
 Chrome 152. Published docs get all three of these wrong:

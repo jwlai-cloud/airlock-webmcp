@@ -139,11 +139,15 @@ td{padding:11px 12px 11px 0;border-bottom:1px solid var(--rule-soft);vertical-al
 .scroll{overflow-x:auto}
 ol.flow{list-style:none;margin:0;padding:0;counter-reset:f;display:flex;
   flex-direction:column;gap:0}
-ol.flow li{counter-increment:f;display:grid;grid-template-columns:2rem 1fr;gap:14px;
-  padding:13px 0;border-top:1px solid var(--rule-soft);align-items:baseline}
+/* NB: not grid/flex here — a grid container blockifies every inline child, so the
+   text nodes around <code> and <em> each become their own grid item. Absolute
+   positioning keeps the list item a single normal inline flow. */
+ol.flow li{counter-increment:f;position:relative;padding:13px 0 13px 2.9rem;
+  border-top:1px solid var(--rule-soft);max-width:66ch}
 ol.flow li:first-child{border-top:0}
-ol.flow li::before{content:counter(f);font-family:var(--mono);font-size:.74rem;
-  font-weight:700;color:var(--slate)}
+ol.flow li::before{content:counter(f);position:absolute;left:0;top:13px;
+  font-family:var(--mono);font-size:.74rem;font-weight:700;color:var(--slate);
+  line-height:1.62}
 ol.flow b{font-family:var(--display);font-weight:600}
 .note{border-left:3px solid var(--warn);background:var(--warn-wash);padding:12px 16px;
   border-radius:0 5px 5px 0;font-size:.94rem}

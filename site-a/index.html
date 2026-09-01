@@ -273,6 +273,31 @@ if (!("modelContext" in document)) {
     refreshToolCount();
   }
 
+  /* ---------- API diagnostics ----------
+     Prints what this browser actually implements, into the DOM, so the open question
+     about requestUserInteraction's receiver is answered by opening the page rather
+     than by poking at DevTools. Also readable by a headless --dump-dom run. */
+  (async function diag() {
+    const mc = document.modelContext;
+    const lines = [
+      `document.modelContext: present`,
+      `modelContext.requestUserInteraction: ${typeof mc.requestUserInteraction}`,
+      `navigator.modelContext: ${"modelContext" in navigator ? "present" : "absent"}`
+    ];
+    try {
+      const partner = await mc.getTools({ fromOrigins: [B_ORIGIN] });
+      lines.push(`partner tools visible: ${partner.length} [${partner.map(t => t.name).join(", ")}]`);
+      if (partner[0]) lines.push(`RegisteredTool keys: {${Object.keys(partner[0]).sort().join(", ")}}`);
+    } catch (e) {
+      lines.push(`getTools({fromOrigins}) threw: ${e.name}: ${e.message}`);
+    }
+    const box = el("div", "card");
+    box.appendChild(el("div", "hd", "API diagnostics"));
+    for (const l of lines) box.appendChild(el("div", "row dim", l));
+    box.id = "diag";
+    $("cohorts").closest(".pane").appendChild(box);
+  })();
+
   log("4 tools registered; estimate_overlap withheld pending consent", "ok");
   document.modelContext.addEventListener?.("toolchange", () => { log("toolchange fired", "dim"); refreshToolCount(); });
   refreshToolCount();
