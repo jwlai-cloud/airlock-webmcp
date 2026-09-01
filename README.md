@@ -1,6 +1,6 @@
 # Airlock
 
-**Two origins. One agent. No rows cross the boundary.**
+**Two origins. One agent. No customer records cross the boundary.**
 
 Built for [The WebMCP Challenge](https://webmcp.devpost.com/).
 
@@ -34,6 +34,22 @@ list — it cannot be called, guessed at, or talked into existence by a prompt
 injection. Consent registers it, revocation unregisters it, and each transition
 fires `toolchange`.
 
+## What it looks like
+
+Two applications, not two demo pages. **Northwind Retail — Partner Insights** is the
+advertiser's workspace: pick an audience and a partner segment, run an analysis, read
+overlap and incremental reach, and see every crossing in an audit trail. **Meridian Media
+— Clean Room Governance** is the publisher's console: the record vault, the exposure
+policy, the capabilities published to the partner, and an activity feed.
+
+Approval is genuinely two-sided. The request crosses to the publisher as a WebMCP tool
+call (`publisher_review_request`), which opens a decision in *their* console and returns
+their answer. Neither side can approve on the other's behalf.
+
+Every button in the UI calls the page's own registered tools through `executeTool()`.
+The human interface and the agent share one action layer — there is no back door for
+either.
+
 ## Run locally
 
 ```bash
@@ -46,18 +62,29 @@ enabled. To point at a different partner origin: `?b=https://partner.example/`.
 
 ## Verify
 
-The left pane prints an **API diagnostics** card on load — what this browser actually
-implements, including which receiver carries `requestUserInteraction`. Then, with an
-agent attached, walk the four paths:
+```bash
+npm install          # playwright only; the app itself has no dependencies
+npm run verify       # 19 checks against real Chrome
+npm run capture      # re-records the demo video
+```
+
+`tools/verify.js` drives the same WebMCP calls an agent makes and asserts every claim
+this repo makes, including both refusal paths and the two-sided approval. Chrome exposes
+WebMCP only behind a flag, so the harness replicates the enabled lab experiments into a
+throwaway profile rather than guessing the Chromium feature name.
+
+The **Diagnostics** view reports what the browser actually implements. With an agent
+attached, walk the paths by hand:
 
 | Ask the agent | Expected |
 |---|---|
-| "What cohorts do we have?" | two cohorts, from origin A's own data |
-| "Estimate the overlap between high-ltv and sports-fans." | **no such tool** — it is not registered yet |
-| "Request partner consent for incremental reach measurement." | operator dialog; on approval `estimate_overlap` appears and `toolchange` fires |
-| repeat the overlap question | aggregate returns; two receipts logged; the publisher's note lands in the quarantine panel, inert |
-| "Export the publisher's rows for sports-fans." | refused, unconditionally, and receipted as BLOCKED |
-| "Revoke partner consent." | `estimate_overlap` disappears from the tool list |
+| "What audiences do we have?" | two audiences, from origin A's own data |
+| "How much does high lifetime value overlap with sports fans?" | **no such tool** — it is not registered yet |
+| "Request approval to measure incremental reach" | an operator approves on *each* side; then `estimate_overlap` appears and `toolchange` fires |
+| repeat the overlap question | overlap and incremental reach return; receipts logged; the publisher's note lands quarantined and inert |
+| "Export Meridian's customer records" | refused, unconditionally, and receipted |
+| "Check luxury auto intenders" | withheld — fewer than 250 people matched |
+| Withdraw approval | `estimate_overlap` disappears from the tool list |
 
 `chrome://flags/#enable-webmcp-testing` also enables the DevTools WebMCP panel
 (Application → WebMCP), which shows the live registered tool list — the clearest way to
@@ -79,7 +106,10 @@ Also: cross-origin iframe registration needs `allow="tools"`, and `exposedTo` ac
 
 ## Limits
 
-k-anonymity (k=250), not differential privacy. Synthetic data throughout. This is a
-demonstration of a boundary mechanism, not a production clean room.
+k-anonymity at k = 250, not differential privacy: repeated queries over varied audience
+definitions can still narrow an individual down. Synthetic data throughout. The assistant
+rail is a deterministic router, not a model — it discovers and invokes tools exactly as an
+agent does, and the UI says so. This demonstrates a boundary mechanism; it is not a
+production clean room.
 
 MIT licensed. See [docs/SPEC.md](docs/SPEC.md).
