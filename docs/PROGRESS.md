@@ -64,9 +64,34 @@ suppression rule is actually demonstrable.
 agent makes. First cut is 82s (cap is 3:00), in `.airlock-video/` (gitignored). Beat
 timings in `beats.json` for writing narration against.
 
+### Later on 2026-09-01 — product, agents, video, submission
+
+- **Both origins rebuilt as applications.** Northwind Retail "Partner Insights" and
+  Meridian Media "Clean Room Governance". The console read as a proof of concept, which
+  is the one thing the Execution criterion rules out.
+- **Approval is two-sided.** SPEC §4 always claimed both operators approve; only origin A
+  was ever asked. The request now crosses to B as `publisher_review_request`.
+- **Three ways to drive it, no key shipped.** Chrome's built-in agent
+  (`gemini-3-flash-preview`); the judge's own Gemini key in Agent settings, kept in their
+  browser; or a deterministic no-model router. All use the same tools.
+- **Declarative WebMCP.** Verified Chrome 152 implements `toolname`/`tooldescription`
+  and `:tool-form-active`. `check_segment_reach` is now a form the browser publishes.
+  Declarative tools return `inputSchema` as a JSON *string* and carry no `annotations`,
+  so anything gated or untrusted stays imperative.
+- **Second origin is live.** githack serves `site-b/index.html` as real `text/html` over
+  HTTPS from `rawcdn.githack.com` — a different origin from `jwlai-cloud.github.io`, with
+  no second account. `tools/deploy-publisher.sh` covers the GitHub-org route.
+- **Video: 2:44, 1920×1080, AAC.** `npm run capture` synthesises narration with macOS
+  `say`, drives the real product, and mixes audio at the recorded beat times.
+  `tools/script-doc.js` regenerates the script doc from the capture so they cannot drift.
+- **21 checks passing.** `docs/SUBMISSION.md` is paste-ready.
+
 ### Next, in order
 
-1. **Second HTTPS origin.** All repos under one GitHub account share one Pages origin,
+1. ~~Second HTTPS origin~~ — **done**, via githack. Still worth moving to a GitHub org
+   origin if there is time; githack is a third-party file host, and while it sees none of
+   the data, a judge reading carefully may prefer an origin you control.
+2. **Old blocker text, kept for context:** All repos under one GitHub account share one Pages origin,
    so the pair cannot both live there. Cloudflare Pages, Vercel, Render and Netlify are
    all sponsor-listed and acceptable. Network to all four APIs is reachable from this
    shell now — the earlier Netlify block was transient. Needs the operator to
