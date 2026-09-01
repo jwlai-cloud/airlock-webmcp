@@ -1,7 +1,28 @@
-narration: 23 lines, 2:31 spoken (your own recording)
-projected runtime 2:58 (spoken 2:31 + ~26s of picture)
+narration: 23 lines, 2:29 spoken (your own recording)
+projected runtime 2:52 (spoken 2:29 + ~23s of picture)
+   0.1s  Two companies. One question neither can answer.
+   6.4s  Neither may show the other its customer list.
+  11.8s  Today: a clean-room vendor, a contract, six figures.
+  18.8s  To measure the overlap, both lists leave the building.
+  24.3s  Airlock starts as an ordinary web app.
+  31.9s  WebMCP: the app declares what it can do.
+  43.1s  An agent calls those tools — no screenshots, no guessing.
+  47.7s  This answer needs a second origin — WebMCP's exposedTo.
+  57.1s  That tool is not registered, so getTools() never returns it.
+  66.1s  Nothing to call — and no wording brings it into existence.
+  74.6s  Asking for the records directly is refused outright.
+  78.1s  Approval is a business decision. A person makes it on each side.
+  82.9s  The request crosses to the publisher's console as a tool call.
+  90.6s  Two approvals → registerTool(). Only now does it exist.
+  97.7s  2,178 shared. 13,057 more reachable. Zero records moved.
+ 107.3s  The publisher also returned free text — and it is an attack.
+ 113.5s  Quarantined as text. Never followed as an instruction.
+ 121.2s  Too few people matched. The number is withheld, not rounded.
+ 128.1s  Every crossing is on the record, for both companies.
+ 132.0s  exposedTo: four capabilities to this origin, nothing else.
+ 141.7s  All of it: registerTool · exposedTo · getTools · executeTool.
+ 154.6s  Withdraw approval → the signal aborts → the tool is gone.
+ 161.4s  A data clean room with no clean-room vendor in it.
 
-*** 2:58 is too close to the 3:00 ceiling. ***
-Trim the narration, or lower the `extra` holds in tools/capture.js.
-Pass --force to record anyway.
-
+/Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
+runtime 2:50  (limit 3:00)

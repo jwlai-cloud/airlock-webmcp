@@ -53,8 +53,8 @@ if (segs.length !== EXPECTED) {
 fs.mkdirSync(VO, { recursive: true });
 segs.forEach(([a, b], i) => {
   const out = path.join(VO, String(i).padStart(2, "0") + ".wav");
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-ss", String(Math.max(0, a - 0.12)),
-    "-to", String(b + 0.12), "-ar", "44100", "-ac", "2", out]);
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", src, "-ss", String(Math.max(0, a - 0.05)),
+    "-to", String(b + 0.08), "-ar", "44100", "-ac", "2", out]);
 });
 const spoken = segs.reduce((t, [a, b]) => t + (b - a), 0);
 console.log(`\nwrote ${segs.length} clips to ${VO}`);

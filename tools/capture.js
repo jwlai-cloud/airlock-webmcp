@@ -75,7 +75,7 @@ const SCRIPT = [
   { cap: "WebMCP: the app declares what it can do.",
     vo: "WebMCP lets it write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
     go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
-    extra: 0.3 },
+    extra: 0.2 },
 
   { cap: "An agent calls those tools — no screenshots, no guessing.",
     vo: "So an agent operates the product directly, instead of reading the screen and guessing.",
@@ -84,14 +84,14 @@ const SCRIPT = [
   // ---- the twist: the answer needs a second app --------------------------
   { cap: "This answer needs a second origin — WebMCP's exposedTo.",
     vo: "But this question needs a second app, owned by another company, on another origin. Live on the right, in a cross-origin frame.",
-    extra: 0.3 },
+    extra: 0.2 },
 
 
   // ---- refusal one -------------------------------------------------------
   { cap: "That tool is not registered, so getTools() never returns it.",
     vo: "A marketer asks in plain language. The agent cannot answer: the tool that crosses the boundary is not registered, so it is not in its list.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1500); }, extra: 0.3 },
+                          await p.waitForTimeout(1500); }, extra: 0.2 },
 
   { cap: "Nothing to call — and no wording brings it into existence.",
     vo: "That is the whole idea. A permission check can be argued past. A tool that does not exist cannot." },
@@ -112,7 +112,7 @@ const SCRIPT = [
     vo: "The request crosses to the publisher's console as a tool call. Their officer decides independently.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
-                          await p.waitForTimeout(600); }, extra: 0.25 },
+                          await p.waitForTimeout(600); }, extra: 0.15 },
 
   { cap: "Two approvals → registerTool(). Only now does it exist.",
     vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
@@ -123,7 +123,7 @@ const SCRIPT = [
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1700); }, extra: 0.5 },
+                          await p.waitForTimeout(1700); }, extra: 0.2 },
 
   // ---- the injection -----------------------------------------------------
   { cap: "The publisher also returned free text — and it is an attack.",
@@ -131,7 +131,7 @@ const SCRIPT = [
 
   { cap: "Quarantined as text. Never followed as an instruction.",
     vo: "It is quarantined as text, never followed. And no tool over there can return a record anyway.",
-    extra: 0.25 },
+    extra: 0.15 },
 
   // ---- k-anonymity -------------------------------------------------------
   { cap: "Too few people matched. The number is withheld, not rounded.",
@@ -153,7 +153,7 @@ const SCRIPT = [
   { cap: "All of it: registerTool · exposedTo · getTools · executeTool.",
     vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.",
     go: async (p, h) => { await h.showDiagram("airlock-architecture.png"); },
-    extra: 0.5 },
+    extra: 0.2 },
 
   // ---- revocation --------------------------------------------------------
   { cap: "Withdraw approval → the signal aborts → the tool is gone.",
@@ -166,7 +166,7 @@ const SCRIPT = [
   { cap: "A data clean room with no clean-room vendor in it.",
     vo: "Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
-    extra: 0.9 }
+    extra: 0.6 }
 ];
 
 // `node tools/capture.js --list-voices` prints the voices on your ElevenLabs account.
@@ -299,7 +299,7 @@ if (argv.includes("--list-voices")) {
   // Roughly what the picture adds on top of speech: per-beat pad, the `extra` holds, the
   // UI actions, and the head and tail. Checked before recording so a long read is caught
   // in a second rather than after a three-minute render.
-  const overhead = SCRIPT.reduce((a, b) => a + 0.25 + (b.extra || 0), 0) + 17;
+  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + 17;
   const projected = spoken + overhead;
   const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
   console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
@@ -346,9 +346,10 @@ if (argv.includes("--list-voices")) {
       if (!el) {
         el = document.createElement("div");
         el.id = "__diag";
+        // pointer-events:none, or the overlay keeps swallowing clicks after it fades
         el.style.cssText = `position:fixed;inset:0;z-index:150;background:#F2F5F4;
           display:grid;place-items:center;padding:2.5vh 2.5vw;opacity:0;
-          transition:opacity .45s ease`;
+          pointer-events:none;transition:opacity .45s ease`;
         const img = document.createElement("img");
         img.id = "__diagimg";
         img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain";
@@ -379,7 +380,7 @@ if (argv.includes("--list-voices")) {
     beats.push({ i, at, cap: b.cap, vo: b.vo, len: clips[i].len });
     await page.evaluate(t => window.__cap(t), b.cap);
     console.log(`${at.toFixed(1).padStart(6)}s  ${b.cap}`);
-    await page.waitForTimeout((clips[i].len + 0.25 + (b.extra || 0)) * 1000);
+    await page.waitForTimeout((clips[i].len + 0.15 + (b.extra || 0)) * 1000);
   }
   await page.evaluate(() => window.__cap(""));
   await page.waitForTimeout(1200);
