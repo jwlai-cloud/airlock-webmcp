@@ -12,9 +12,19 @@ const fs = require("fs");
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
-const VOICE = arg("--voice", "Samantha");
-const RATE = arg("--rate", "205");        // words per minute; macOS default is ~175
+const VOICE = arg("--voice", "Karen (Premium)");
+const RATE = arg("--rate", "202");        // words per minute; macOS default is ~175
 const NO_VOICE = argv.includes("--no-voice");
+
+// "say"    -- macOS built-in, no credentials
+// "gcp"    -- Cloud Text-to-Speech, needs a project you can use
+// "gemini" -- Gemini TTS via an AI Studio key in GEMINI_API_KEY; no IAM involved
+// "file"   -- your own recording: .airlock-video/vo/00.wav .. 22.wav, one per line.
+//             Record a single take and run tools/split-vo.js to produce them.
+const TTS = arg("--tts", "say");
+const GEMINI_VOICE = arg("--gemini-voice", "Charon");
+const GCP_VOICE = arg("--gcp-voice", "en-US-Chirp3-HD-Charon");
+const GCP_PROJECT = arg("--project", process.env.GOOGLE_CLOUD_PROJECT || "");
 
 const OUT = path.resolve(__dirname, "../.airlock-video");
 const VO = path.join(OUT, "vo");
@@ -46,57 +56,57 @@ const SCRIPT = [
     go: async p => { await p.click('nav a[data-view="overview"]'); } },
 
   { cap: "Neither is allowed to see the other's customer records.",
-    vo: "Answering it means comparing two customer lists, and neither is allowed to show the other its list." },
+    vo: "Answering it means comparing two customer lists. Neither is allowed to show the other its list." },
 
   { cap: "Today: a clean-room vendor, a contract, six figures, and weeks.",
-    vo: "So today they hire a data clean room. A contract, a procurement cycle, six figures a year, and both companies upload their customer files to a third party.",
+    vo: "So today they hire a data clean room. Six figures a year, and both companies upload their customer files to a third party.",
     extra: 0.3 },
 
   { cap: "The data leaves both buildings to answer one question.",
-    vo: "To find out how much two lists overlap, both lists have to leave the building. The measurement creates the risk.",
+    vo: "To measure an overlap safely, both lists leave the building. The measurement creates the risk.",
     extra: 0.25 },
 
   // ---- why WebMCP is the right tool ----------------------------------------
   { cap: "WebMCP lets a page hand an agent a narrow set of verbs.",
-    vo: "WebMCP changes that. A page hands an agent a narrow set of verbs, and the browser enforces which origins can even see them.",
+    vo: "WebMCP changes that. A page hands an agent a narrow set of verbs, and the browser enforces which origins can see them.",
     extra: 0.2 },
 
   { cap: "So the question can travel instead of the data.",
-    vo: "So the question travels to the data, instead of the data travelling to a vendor. The browser is the clean room.",
+    vo: "So the question travels to the data. The browser is the clean room.",
     extra: 0.2 },
 
   // ---- the product ---------------------------------------------------------
   { cap: "Airlock: two ordinary web apps, on two different origins.",
-    vo: "This is Airlock. Two ordinary web apps on two different origins. The advertiser's workspace, and live on the right, the publisher's own console.",
+    vo: "This is Airlock. Two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.",
     go: async p => { await p.click('nav a[data-view="analysis"]'); }, extra: 0.3 },
 
   { cap: "A marketer asks in plain language. Nothing is uploaded.",
-    vo: "A marketer asks in plain language. Watch the answer." },
+    vo: "A marketer asks in plain language." },
 
   // ---- refusal one ---------------------------------------------------------
   { cap: "The tool that crosses the boundary is not registered yet.",
-    vo: "It can't. The tool that crosses the boundary isn't registered, so it isn't in the agent's tool list at all.",
+    vo: "It cannot. The tool that crosses the boundary is not registered, so it is not in the agent's tool list.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
                           await p.waitForTimeout(1500); } },
 
   { cap: "Nothing to call — and no wording brings it into existence.",
-    vo: "That's the whole idea. A permission check can be argued past. A tool that doesn't exist cannot.",
+    vo: "That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.",
     extra: 0.25 },
 
   // ---- refusal two ---------------------------------------------------------
   { cap: "Asking for the records directly is refused outright.",
-    vo: "Asking for the raw records is refused outright. That tool exists only so the refusal is auditable.",
+    vo: "Asking for the raw records is refused outright.",
     go: async (p, h) => { await h.chip("Export Meridian's customer records");
                           await p.waitForTimeout(1500); }, extra: 0.2 },
 
   // ---- approval ------------------------------------------------------------
   { cap: "Approval is a business decision. A person makes it on each side.",
-    vo: "So it asks for approval. That's a business decision, and a person makes it on each side.",
+    vo: "So it asks for approval. A person decides, on each side.",
     go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
                           await p.waitForSelector("#veil.on"); await p.waitForTimeout(500); } },
 
   { cap: "The request crosses to the publisher's console as a tool call.",
-    vo: "One operator authorises the purpose. The request then crosses to the publisher's console, as a tool call, where their officer decides for themselves.",
+    vo: "The request crosses to the publisher's console as a tool call, where their officer decides independently.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
                           await p.waitForTimeout(600); }, extra: 0.25 },
@@ -108,21 +118,21 @@ const SCRIPT = [
 
   // ---- the answer ----------------------------------------------------------
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
-    vo: "Same question, seconds later. Two thousand one hundred and seventy-eight shared customers. Thirteen thousand more reachable. Two counts crossed. Zero records moved.",
+    vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
                           await p.waitForTimeout(1700); }, extra: 0.5 },
 
   // ---- the injection -------------------------------------------------------
   { cap: "The publisher also returned free text — and it is an attack.",
-    vo: "The publisher also returned a note. That note is a prompt injection, telling the agent to export everything." },
+    vo: "The publisher also returned a note. It is a prompt injection, telling the agent to export everything." },
 
   { cap: "Quarantined as text. Never followed as an instruction.",
-    vo: "It's quarantined as text, never followed. And even if a model believed it, no tool over there can return a record.",
+    vo: "It is quarantined as text, never followed. And no tool over there can return a record anyway.",
     extra: 0.25 },
 
   // ---- k-anonymity ---------------------------------------------------------
   { cap: "Too few people matched. The number is withheld, not rounded.",
-    vo: "Ask about a segment that's too thin and the answer is withheld, not rounded. Under two hundred and fifty people, so the number never leaves.",
+    vo: "Ask about a segment too thin to be safe, and the answer is withheld rather than rounded.",
     go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(1600); },
     extra: 0.2 },
 
@@ -133,46 +143,132 @@ const SCRIPT = [
 
   // ---- mechanism -----------------------------------------------------------
   { cap: "The publisher publishes four capabilities here — and nothing else.",
-    vo: "The publisher exposes four capabilities to this origin and nothing else. A third origin wouldn't get a denial. It wouldn't learn they exist.",
+    vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial. It would not learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
     extra: 0.2 },
 
   { cap: "registerTool with exposedTo. getTools. executeTool.",
-    vo: "That's the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent can drive it — Chrome's own runs Gemini. We ship no key and no backend.",
+    vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it. We ship no key and no backend.",
     go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
     extra: 0.3 },
 
   // ---- revocation ----------------------------------------------------------
   { cap: "Withdraw approval and the capability is gone — not disabled.",
-    vo: "And it's revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
+    vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
     go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);
                      await p.click("#btn-revoke"); await p.waitForTimeout(1200); } },
 
   // ---- close ---------------------------------------------------------------
   { cap: "A data clean room with no clean-room vendor in it.",
-    vo: "Two companies answered a question about their shared customers. Neither saw the other's data, and there was no vendor in between. Airlock.",
+    vo: "Two companies answered a question about their shared customers. Neither saw the other's data, and no vendor sat in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
     extra: 0.9 }
 ];
 
 (async () => {
-  fs.rmSync(OUT, { recursive: true, force: true });
+  // "file" mode reuses an existing vo/ directory, so don't wipe it
+  if (TTS === "file") {
+    const missing = SCRIPT.map((_, i) => path.join(VO, String(i).padStart(2, "0") + ".wav"))
+      .filter(f => !fs.existsSync(f));
+    if (missing.length) {
+      console.error(`--tts file needs one wav per line in ${VO}\n`
+        + `missing ${missing.length} of ${SCRIPT.length}: ${missing.slice(0, 3).map(f => path.basename(f)).join(", ")}…\n`
+        + `Record one take of docs/NARRATION.md, then: node tools/split-vo.js <your-recording>`);
+      process.exit(1);
+    }
+    for (const f of fs.readdirSync(OUT)) {
+      if (f !== "vo") fs.rmSync(path.join(OUT, f), { recursive: true, force: true });
+    }
+  } else {
+    fs.rmSync(OUT, { recursive: true, force: true });
+  }
   fs.mkdirSync(VO, { recursive: true });
 
   // ── 1. synthesise the narration and measure it ──────────────────────────
+  // Cloud Text-to-Speech sounds markedly better than macOS `say`, but needs a project
+  // the caller can actually use. Synthesis is a separate phase from recording, so the
+  // voice can be swapped without re-driving the browser.
+  function synthGcp(text, wav) {
+    const token = sh("gcloud", ["auth", "print-access-token"]).trim();
+    const body = JSON.stringify({
+      input: { text },
+      voice: { languageCode: GCP_VOICE.slice(0, 5), name: GCP_VOICE },
+      audioConfig: { audioEncoding: "LINEAR16", sampleRateHertz: 24000, speakingRate: 1.0 }
+    });
+    const args = ["-s", "-X", "POST", "https://texttospeech.googleapis.com/v1/text:synthesize",
+      "-H", `Authorization: Bearer ${token}`, "-H", "Content-Type: application/json"];
+    if (GCP_PROJECT) args.push("-H", `x-goog-user-project: ${GCP_PROJECT}`);
+    args.push("-d", body);
+    const out = JSON.parse(sh("curl", args));
+    if (!out.audioContent) throw new Error("Cloud TTS: " + JSON.stringify(out.error || out).slice(0, 300));
+    const raw = wav.replace(".wav", ".raw.wav");
+    fs.writeFileSync(raw, Buffer.from(out.audioContent, "base64"));
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, "-ar", "44100", "-ac", "2", wav]);
+    fs.rmSync(raw);
+  }
+
+  // Gemini TTS. The key comes from the environment and is never printed or written to
+  // disk -- it goes into a temp file only so it stays off the process list.
+  function synthGemini(text, wav) {
+    const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    if (!key) throw new Error("set GEMINI_API_KEY to use --tts gemini");
+    const req = path.join(VO, "req.json");
+    fs.writeFileSync(req, JSON.stringify({
+      contents: [{ role: "user", parts: [{ text }] }],
+      generationConfig: { responseModalities: ["AUDIO"],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_VOICE } } } }
+    }));
+    const out = JSON.parse(sh("curl", ["-s", "-X", "POST",
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent",
+      "-H", `x-goog-api-key: ${key}`, "-H", "Content-Type: application/json",
+      "--data-binary", "@" + req]));
+    fs.rmSync(req);
+    const part = out.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+    if (!part) throw new Error("Gemini TTS: " + JSON.stringify(out.error || out).slice(0, 300));
+    // returns raw signed 16-bit PCM at 24 kHz, not a container
+    const pcm = wav.replace(".wav", ".pcm");
+    fs.writeFileSync(pcm, Buffer.from(part.data, "base64"));
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-f", "s16le", "-ar", "24000", "-ac", "1",
+      "-i", pcm, "-ar", "44100", "-ac", "2", wav]);
+    fs.rmSync(pcm);
+  }
+
   const clips = SCRIPT.map((b, i) => {
     if (NO_VOICE) return { len: 2.8 };
-    const aiff = path.join(VO, String(i).padStart(2, "0") + ".aiff");
-    const wav = aiff.replace(".aiff", ".wav");
-    sh("say", ["-v", VOICE, "-r", RATE, "-o", aiff, b.vo]);
-    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", aiff, "-ar", "44100", "-ac", "2", wav]);
-    fs.rmSync(aiff);
+    const wav = path.join(VO, String(i).padStart(2, "0") + ".wav");
+    if (TTS === "file") {
+      return { file: wav, len: dur(wav) };          // your own voice, already recorded
+    }
+    if (TTS === "gcp") {
+      synthGcp(b.vo, wav);
+    } else if (TTS === "gemini") {
+      synthGemini(b.vo, wav);
+    } else {
+      const aiff = wav.replace(".wav", ".aiff");
+      sh("say", ["-v", VOICE, "-r", RATE, "-o", aiff, b.vo]);
+      sh("ffmpeg", ["-y", "-loglevel", "error", "-i", aiff, "-ar", "44100", "-ac", "2", wav]);
+      fs.rmSync(aiff);
+    }
     return { file: wav, len: dur(wav) };
   });
   const spoken = clips.reduce((a, c) => a + c.len, 0);
+  // Roughly what the picture adds on top of speech: per-beat pad, the `extra` holds, the
+  // UI actions, and the head and tail. Checked before recording so a long read is caught
+  // in a second rather than after a three-minute render.
+  const overhead = SCRIPT.reduce((a, b) => a + 0.25 + (b.extra || 0), 0) + 17;
+  const projected = spoken + overhead;
   const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
   console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
-    + `(voice ${VOICE} at ${RATE} wpm)`);
+    + (TTS === "gcp" ? `(Cloud TTS ${GCP_VOICE})`
+       : TTS === "gemini" ? `(Gemini TTS ${GEMINI_VOICE})`
+       : TTS === "file" ? "(your own recording)"
+       : `(say ${VOICE} at ${RATE} wpm)`));
+  console.log(`projected runtime ${mmss(projected)} (spoken ${mmss(spoken)} + ~${Math.round(overhead)}s of picture)`);
+  if (projected > 172) {
+    console.error(`\n*** ${mmss(projected)} is too close to the 3:00 ceiling. ***`);
+    console.error(`Trim the narration, or lower the \`extra\` holds in tools/capture.js.`);
+    if (!argv.includes("--force")) { console.error(`Pass --force to record anyway.\n`); process.exit(1); }
+  }
 
   // ── 2. record, holding each caption for as long as its line takes ───────
   const ctx = await chromium.launchPersistentContext(profile(), {
@@ -185,11 +281,15 @@ const SCRIPT = [
   await page.goto(A + "?v=" + Date.now(), { waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
   await page.evaluate(() => {
+    // The app is designed at 13px for a desktop user sitting close to the screen. On a
+    // 1080p video watched in a small player that is unreadable, so zoom the root: the
+    // page still fills the frame, but every element is ~1.35x larger.
+    document.documentElement.style.zoom = "1.35";
     const bar = document.createElement("div");
     bar.id = "__cap";
     bar.style.cssText = `position:fixed;left:0;right:0;bottom:0;z-index:200;
-      background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:64px 56px 34px;
-      font:500 30px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
+      background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:52px 44px 28px;
+      font:500 26px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
       letter-spacing:-.012em;transition:opacity .3s ease;opacity:0;pointer-events:none`;
     document.body.appendChild(bar);
     window.__cap = t => { bar.textContent = t; bar.style.opacity = t ? "1" : "0"; };

@@ -77,6 +77,30 @@ cd site-b && python3 -m http.server 8788 &
 Open `http://localhost:8787/` in Chrome 149+ with `chrome://flags/#enable-webmcp-testing`
 enabled. To point at a different partner origin: `?b=https://partner.example/`.
 
+## The demo video
+
+```bash
+npm run capture                        # synthesise narration, record, mix
+node tools/capture.js --no-voice       # picture only
+node tools/capture.js --tts file       # use your own recording
+```
+
+`tools/capture.js` drives the real product through the same WebMCP calls an agent makes,
+holds each caption for exactly as long as its line takes to read, and mixes the voice
+track at the beat times actually recorded — so audio and picture cannot drift. It projects
+the runtime before recording and refuses to render if the cut would crowd the 3:00 limit.
+
+To narrate it yourself: read `docs/NARRATION.md` in one take leaving a pause between
+lines, then
+
+```bash
+node tools/split-vo.js my-recording.m4a   # splits on the pauses
+node tools/capture.js --tts file
+```
+
+`docs/VIDEO-SCRIPT.md` is regenerated from the capture itself, so the written script and
+the recorded cut cannot disagree.
+
 ## Deploying the pair
 
 Airlock needs two genuinely different origins. Every repo under one GitHub account shares
