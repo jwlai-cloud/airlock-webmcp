@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Consent creates the capability",
+    "subtitle": "The refusal, the two-sided approval, and the crossing that follows",
+    "output": "airlock-sequence.html",
+    "viewBox": [
+      900,
+      920
+    ],
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "before",
+        "label": "Before approval",
+        "focus": [
+          "agent",
+          "adv"
+        ],
+        "note": "Not a denial — the tool is absent from the list the agent was given."
+      },
+      {
+        "id": "approval",
+        "label": "Two-sided approval",
+        "focus": [
+          "adv",
+          "opA",
+          "pub",
+          "opB"
+        ],
+        "note": "The second approval happens on the other origin, so neither side can approve for the other."
+      },
+      {
+        "id": "crossing",
+        "label": "The crossing",
+        "focus": [
+          "adv",
+          "pub"
+        ],
+        "note": "Two aggregate counts cross. The join happens locally, against data that never moved."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "Agent",
+      "sublabel": "any WebMCP client"
+    },
+    {
+      "id": "adv",
+      "type": "frontend",
+      "label": "Origin A",
+      "sublabel": "Northwind Retail"
+    },
+    {
+      "id": "opA",
+      "type": "security",
+      "label": "Operator A",
+      "sublabel": "Northwind"
+    },
+    {
+      "id": "pub",
+      "type": "frontend",
+      "label": "Origin B",
+      "sublabel": "Meridian Media"
+    },
+    {
+      "id": "opB",
+      "type": "security",
+      "label": "Operator B",
+      "sublabel": "Meridian governance"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 250,
+      "label": "The tool does not exist"
+    },
+    {
+      "from": 270,
+      "to": 560,
+      "label": "Both operators approve"
+    },
+    {
+      "from": 580,
+      "to": 830,
+      "label": "One analysis"
+    }
+  ],
+  "messages": [
+    {
+      "id": "ask-early",
+      "from": "agent",
+      "to": "adv",
+      "y": 186,
+      "label": "estimate_overlap(...)",
+      "variant": "default"
+    },
+    {
+      "id": "no-such-tool",
+      "from": "adv",
+      "to": "agent",
+      "y": 224,
+      "label": "no such tool — it is not registered",
+      "variant": "return",
+      "note": "Absent from getTools(), so it was never offered"
+    },
+    {
+      "id": "ask-consent",
+      "from": "agent",
+      "to": "adv",
+      "y": 300,
+      "label": "request_partner_consent({purpose})",
+      "variant": "emphasis"
+    },
+    {
+      "id": "prompt-a",
+      "from": "adv",
+      "to": "opA",
+      "y": 340,
+      "label": "show the stated purpose",
+      "variant": "security"
+    },
+    {
+      "id": "grant-a",
+      "from": "opA",
+      "to": "adv",
+      "y": 378,
+      "label": "authorise",
+      "variant": "return"
+    },
+    {
+      "id": "cross-review",
+      "from": "adv",
+      "to": "pub",
+      "y": 418,
+      "label": "executeTool(publisher_review_request)",
+      "variant": "emphasis",
+      "note": "The request crosses the origin boundary"
+    },
+    {
+      "id": "prompt-b",
+      "from": "pub",
+      "to": "opB",
+      "y": 456,
+      "label": "show the stated purpose",
+      "variant": "security"
+    },
+    {
+      "id": "grant-b",
+      "from": "opB",
+      "to": "pub",
+      "y": 494,
+      "label": "approve",
+      "variant": "return"
+    },
+    {
+      "id": "granted",
+      "from": "adv",
+      "to": "agent",
+      "y": 534,
+      "label": "registerTool(estimate_overlap)",
+      "variant": "security",
+      "note": "toolchange fires. The capability now exists."
+    },
+    {
+      "id": "ask-again",
+      "from": "agent",
+      "to": "adv",
+      "y": 606,
+      "label": "estimate_overlap(...)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "reach",
+      "from": "adv",
+      "to": "pub",
+      "y": 644,
+      "label": "publisher_segment_reach",
+      "variant": "default"
+    },
+    {
+      "id": "reach-back",
+      "from": "pub",
+      "to": "adv",
+      "y": 680,
+      "label": "15,235 — an aggregate",
+      "variant": "return"
+    },
+    {
+      "id": "overlap",
+      "from": "adv",
+      "to": "pub",
+      "y": 716,
+      "label": "publisher_overlap_count",
+      "variant": "default"
+    },
+    {
+      "id": "overlap-back",
+      "from": "pub",
+      "to": "adv",
+      "y": 752,
+      "label": "2,178 — at or above k = 250",
+      "variant": "return",
+      "note": "Below the floor this would be withheld, not rounded"
+    },
+    {
+      "id": "answer",
+      "from": "adv",
+      "to": "agent",
+      "y": 792,
+      "label": "2,178 shared · 0 records moved",
+      "variant": "return"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Before approval",
+      "items": [
+        "estimate_overlap is not registered",
+        "There is no name to call and no error to probe"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Approval",
+      "items": [
+        "An operator decides on each side",
+        "The second decision happens on the other origin"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "The crossing",
+      "items": [
+        "Two aggregate counts, nothing else",
+        "The join runs locally, on data that never moved"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,23 @@
 # Diagrams for the submission
 
-Mermaid, so they render inline on GitHub and Devpost. Copy the fenced blocks.
+Two of these are also rendered properly, via Archify, as interactive HTML with PNG
+exports — use those for the submission itself:
+
+| | |
+|---|---|
+| `docs/diagrams/airlock-architecture.html` / `.png` | the system, both origins, what crosses |
+| `docs/diagrams/airlock-sequence.html` / `.png` | the refusal, the two-sided approval, one analysis |
+
+Regenerate after editing the specs beside them:
+
+```bash
+cd ~/.claude/skills/archify
+node bin/archify.mjs deliver architecture <spec>.json <out>.html --quality showcase
+cd -   &&   node tools/diagram-png.js
+```
+
+The Mermaid below is the same material in a form that renders inline on GitHub and
+Devpost, for anywhere an image cannot go.
 
 ## 1. System architecture
 

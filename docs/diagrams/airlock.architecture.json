@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Airlock",
+    "subtitle": "Two origins, one agent — aggregates cross, customer records never do",
+    "output": "airlock-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1060,
+      660
+    ],
+    "views": [
+      {
+        "id": "the-crossing",
+        "label": "The crossing",
+        "focus": [
+          "agent",
+          "advTools",
+          "airlock",
+          "pubTools"
+        ],
+        "note": "The only path between the two companies, and it is mediated by the browser."
+      },
+      {
+        "id": "records-stay",
+        "label": "Where records live",
+        "focus": [
+          "advData",
+          "pubData",
+          "airlock"
+        ],
+        "note": "Each side keeps its own records. Only counts move."
+      },
+      {
+        "id": "who-approves",
+        "label": "Who approves",
+        "focus": [
+          "advApp",
+          "pubApp",
+          "airlock"
+        ],
+        "note": "An operator on each side authorises a stated purpose before the tool exists."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "agent",
+      "type": "external",
+      "label": "AI agent",
+      "sublabel": "Chrome built-in, your own key, or none",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        160,
+        76
+      ]
+    },
+    {
+      "id": "advApp",
+      "type": "frontend",
+      "label": "Partner Insights",
+      "sublabel": "Northwind Retail",
+      "pos": [
+        270,
+        120
+      ],
+      "size": [
+        170,
+        64
+      ]
+    },
+    {
+      "id": "advTools",
+      "type": "backend",
+      "label": "5 registered tools",
+      "sublabel": "cohorts · receipts · approval · revoke",
+      "pos": [
+        270,
+        300
+      ],
+      "size": [
+        170,
+        76
+      ],
+      "tag": "1 declarative"
+    },
+    {
+      "id": "advData",
+      "type": "database",
+      "label": "2 audiences",
+      "sublabel": "11,500 people",
+      "pos": [
+        270,
+        490
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "tag": "never leaves"
+    },
+    {
+      "id": "airlock",
+      "type": "security",
+      "label": "estimate_overlap",
+      "sublabel": "brokers the query, applies the floor",
+      "pos": [
+        530,
+        300
+      ],
+      "size": [
+        180,
+        84
+      ],
+      "tag": "unregistered until both approve"
+    },
+    {
+      "id": "pubApp",
+      "type": "frontend",
+      "label": "Clean Room Governance",
+      "sublabel": "Meridian Media",
+      "pos": [
+        800,
+        120
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "pubTools",
+      "type": "backend",
+      "label": "4 published tools",
+      "sublabel": "reach · overlap · review · export",
+      "pos": [
+        800,
+        300
+      ],
+      "size": [
+        180,
+        76
+      ],
+      "tag": "exposedTo: [origin A]"
+    },
+    {
+      "id": "pubData",
+      "type": "database",
+      "label": "4,200 user records",
+      "sublabel": "4 segments",
+      "pos": [
+        800,
+        490
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "tag": "never leaves"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Origin A — advertiser",
+      "wraps": [
+        "advApp",
+        "advTools",
+        "advData"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Origin B — publisher",
+      "wraps": [
+        "pubApp",
+        "pubTools",
+        "pubData"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "agent-calls",
+      "from": "agent",
+      "to": "advTools",
+      "label": "getTools() · executeTool()",
+      "variant": "emphasis",
+      "labelDy": -32
+    },
+    {
+      "id": "ui-same-tools",
+      "from": "advApp",
+      "to": "advTools",
+      "label": "the UI calls the same tools",
+      "variant": "dashed",
+      "labelDy": 24
+    },
+    {
+      "id": "adv-reads",
+      "from": "advTools",
+      "to": "advData"
+    },
+    {
+      "id": "consent-registers",
+      "from": "advTools",
+      "to": "airlock",
+      "label": "approval registers it",
+      "variant": "security",
+      "labelDy": -42
+    },
+    {
+      "id": "the-crossing",
+      "from": "airlock",
+      "to": "pubTools",
+      "label": "aggregates only, k ≥ 250",
+      "variant": "emphasis",
+      "labelDy": -44
+    },
+    {
+      "id": "pub-reads",
+      "from": "pubTools",
+      "to": "pubData"
+    },
+    {
+      "id": "governance",
+      "from": "pubApp",
+      "to": "pubTools",
+      "label": "their operator approves here",
+      "variant": "dashed",
+      "labelDy": 24
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "What crosses",
+      "items": [
+        "Aggregate counts, at or above k = 250",
+        "Nothing else — no tool can emit a record"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "What holds it",
+      "items": [
+        "exposedTo: only origin A sees these tools",
+        "estimate_overlap is absent until both approve",
+        "Revoking aborts the registration signal"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "What is not here",
+      "items": [
+        "No backend, no database, no third party",
+        "No API key — Airlock calls no model"
+      ]
+    }
+  ]
+}

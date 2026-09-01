@@ -1,25 +1,28 @@
-narration: 23 lines, 1:51 spoken (your own recording)
-projected runtime 2:18 (spoken 1:51 + ~27s of picture)
+narration: 23 lines, 2:22 spoken (your own recording)
+projected runtime 2:49 (spoken 2:22 + ~27s of picture)
    0.1s  Two companies. One question neither can answer.
-   6.5s  Neither is allowed to see the other's customer records.
-  10.9s  Today: a clean-room vendor, a contract, six figures, and weeks.
-  17.3s  The data leaves both buildings to answer one question.
-  21.9s  WebMCP lets a page hand an agent a narrow set of verbs.
-  28.8s  So the question can travel instead of the data.
-  32.7s  Airlock: two ordinary web apps, on two different origins.
-  40.2s  A marketer asks in plain language. Nothing is uploaded.
-  43.6s  The tool that crosses the boundary is not registered yet.
-  48.8s  Nothing to call — and no wording brings it into existence.
-  55.5s  Asking for the records directly is refused outright.
-  58.9s  Approval is a business decision. A person makes it on each side.
-  63.6s  The request crosses to the publisher's console as a tool call.
-  69.5s  Two approvals register the tool. Only now does it exist.
-  75.7s  2,178 shared. 13,057 more reachable. Zero records moved.
-  83.2s  The publisher also returned free text — and it is an attack.
-  88.1s  Quarantined as text. Never followed as an instruction.
-  94.1s  Too few people matched. The number is withheld, not rounded.
-  99.8s  Every crossing is on the record, for both companies.
- 103.2s  The publisher publishes four capabilities here — and nothing else.
- 110.4s  registerTool with exposedTo. getTools. executeTool.
- 121.9s  Withdraw approval and the capability is gone — not disabled.
- 127.8s  A data clean room with no clean-room vendor in it.
+   7.8s  Neither is allowed to see the other's customer records.
+  13.3s  Today: a clean-room vendor, a contract, six figures, and weeks.
+  21.0s  The data leaves both buildings to answer one question.
+  26.7s  WebMCP lets a page hand an agent a narrow set of verbs.
+  34.5s  So the question can travel instead of the data.
+  39.2s  Airlock: two ordinary web apps, on two different origins.
+  48.4s  A marketer asks in plain language. Nothing is uploaded.
+  52.3s  The tool that crosses the boundary is not registered yet.
+  59.1s  Nothing to call — and no wording brings it into existence.
+  67.6s  Asking for the records directly is refused outright.
+  71.6s  Approval is a business decision. A person makes it on each side.
+  76.6s  The request crosses to the publisher's console as a tool call.
+  84.3s  Two approvals register the tool. Only now does it exist.
+  95.1s  2,178 shared. 13,057 more reachable. Zero records moved.
+ 104.3s  The publisher also returned free text — and it is an attack.
+ 110.7s  Quarantined as text. Never followed as an instruction.
+ 119.0s  Too few people matched. The number is withheld, not rounded.
+ 126.0s  Every crossing is on the record, for both companies.
+ 130.1s  The publisher publishes four capabilities here — and nothing else.
+ 139.6s  registerTool with exposedTo. getTools. executeTool.
+ 154.5s  Withdraw approval and the capability is gone — not disabled.
+ 161.7s  A data clean room with no clean-room vendor in it.
+
+/Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
+runtime 2:50  (limit 3:00)

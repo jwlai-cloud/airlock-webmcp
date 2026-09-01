@@ -23,6 +23,8 @@ in a second rather than after a three-minute render. If the splitter finds the w
 number of segments, retune it instead of re-recording:
 `node tools/split-vo.js <file> 0.4 -30dB`.
 
+A full render takes about four minutes, so run it in a terminal you will leave alone.
+
 Quiet room; a phone voice memo or a headset is fine — consistency beats a good
 microphone. **No music**: the rules forbid copyrighted audio, and the cut needs none.
 
