@@ -4,13 +4,13 @@
 //     node tools/split-vo.js my-recording.m4a
 // It writes .airlock-video/vo/00.wav .. NN.wav, then:
 //     node tools/capture.js --tts file
-const { execFileSync } = require("child_process");
+const { execFileSync, spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
 const src = process.argv[2];
-const GAP = parseFloat(process.argv[3] || "0.55");   // silence long enough to count as a break
-const FLOOR = process.argv[4] || "-34dB";            // anything quieter counts as silence
+const GAP = parseFloat(process.argv[3] || "1.00");   // silence long enough to count as a break
+const FLOOR = process.argv[4] || "-40dB";            // anything quieter counts as silence
 if (!src) { console.error("usage: node tools/split-vo.js <recording> [minGap=0.55] [floor=-34dB]"); process.exit(1); }
 
 const VO = path.resolve(__dirname, "../.airlock-video/vo");
@@ -21,14 +21,12 @@ const sh = (c, a) => execFileSync(c, a, { encoding: "utf8", stdio: ["ignore", "p
 const total = parseFloat(sh("ffprobe",
   ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", src]).trim());
 
-// ffmpeg reports silence on stderr
-let log = "";
-try {
-  execFileSync("ffmpeg", ["-i", src, "-af", `silencedetect=noise=${FLOOR}:d=${GAP}`, "-f", "null", "-"],
-    { stdio: ["ignore", "pipe", "pipe"] });
-} catch (e) { log = String(e.stderr || ""); }
-if (!log) { try { log = sh("ffmpeg", ["-i", src, "-af",
-  `silencedetect=noise=${FLOOR}:d=${GAP}`, "-f", "null", "-"]); } catch { /* stderr captured above */ } }
+// silencedetect writes to stderr, and ffmpeg exits 0, so this must be read from
+// stderr explicitly rather than from a thrown error or from stdout.
+const probe = spawnSync("ffmpeg", ["-hide_banner", "-i", src,
+  "-af", `silencedetect=noise=${FLOOR}:d=${GAP}`, "-f", "null", "-"],
+  { encoding: "utf8", maxBuffer: 1 << 26 });
+const log = String(probe.stderr || "");
 
 const starts = [...log.matchAll(/silence_start:\s*([\d.]+)/g)].map(m => +m[1]);
 const ends = [...log.matchAll(/silence_end:\s*([\d.]+)/g)].map(m => +m[1]);
