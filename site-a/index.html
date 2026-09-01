@@ -269,14 +269,21 @@ tr:last-child td{border-bottom:0}
             </table></div></div>
           </div>
           <div class=card>
-            <h3>Get started</h3>
-            <div class=body class=stack>
-              <p class=lead>Ask the assistant on the right, or open
-                <b>Partner insights</b> and run an analysis yourself. Both routes call the
-                same four capabilities — there is no separate back door for the agent.</p>
-              <div class=row style="margin-top:12px">
-                <button class=primary data-go=analysis>Open partner insights</button>
-                <button data-go=partners>Review partner access</button>
+            <h3>Drive it with a real agent</h3>
+            <div class=body>
+              <div class=stack>
+                <p class=lead>Airlock registers plain WebMCP tools, so <b>any</b> agent can
+                  operate it. In Chrome, open the built-in agent — it runs
+                  <span class=mono>gemini-3-flash-preview</span> — and ask in your own words:</p>
+                <div class=quote>“How much does our high lifetime value audience overlap with
+                  Meridian's sports fans?”</div>
+                <p class=lead>Before approval it will tell you no such tool exists, because
+                  none does. Ask it to export Meridian's records and it will be refused.
+                  Nothing here is scripted for it.</p>
+                <div class=row style="margin-top:4px">
+                  <button class=primary data-go=analysis>Open partner insights</button>
+                  <button data-go=diag>See what's registered</button>
+                </div>
               </div>
             </div>
           </div>
@@ -367,9 +374,11 @@ tr:last-child td{border-bottom:0}
       <button role=tab aria-selected=false data-tab=partner>Partner console</button>
     </div>
     <div class="pane on" id=p-agent>
-      <div class=railnote>Deterministic router, no model. It discovers tools with
-        <span class=mono>getTools()</span> and invokes them with
-        <span class=mono>executeTool()</span> — the same calls a real WebMCP agent makes.</div>
+      <div class=railnote><b>Using Chrome's own agent?</b> It runs
+        <span class=mono>gemini-3-flash-preview</span> and will discover these same tools
+        by itself — open it and ask in your own words. The assistant below is a fallback
+        for browsers without one: a deterministic router, no model, calling the identical
+        <span class=mono>getTools()</span> and <span class=mono>executeTool()</span>.</div>
       <div class=chat id=chat></div>
       <div class=composer>
         <div class=chips id=chips></div>
@@ -846,7 +855,8 @@ if (!("modelContext" in document)) {
   syncGate();
 
   say("a", "I can measure how your customers overlap with Meridian's audiences. Nothing "
-    + "you ask me can move a customer record between the two companies.");
+    + "you ask me can move a customer record between the two companies. If your browser has "
+    + "its own agent, use that instead — it reaches the same tools.");
 
   /* ── diagnostics ───────────────────────────────────────────────────── */
   (async function diag() {

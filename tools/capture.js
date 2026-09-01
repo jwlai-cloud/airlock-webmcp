@@ -1,9 +1,23 @@
-// Records the Airlock demo by driving the real product through the same WebMCP calls
-// an agent makes. Captions are burned in as a lower third so the cut reads with sound
-// off; narration goes over the top. Re-run to fix a single beat -- no re-shoot.
+// Records the Airlock demo end to end: synthesises the narration, drives the real
+// product through the same WebMCP calls an agent makes, holds each caption for exactly
+// as long as its line takes to read, then mixes the voice track onto the video at the
+// beat times actually recorded. Deterministic and re-takeable -- change one line and
+// re-run; there is no re-shoot.
+//
+//   node tools/capture.js [--voice "Samantha"] [--no-voice]
 const { chromium } = require("playwright");
+const { execFileSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+
+const argv = process.argv.slice(2);
+const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
+const VOICE = arg("--voice", "Samantha");
+const NO_VOICE = argv.includes("--no-voice");
+
+const OUT = path.resolve(__dirname, "../.airlock-video");
+const VO = path.join(OUT, "vo");
+const A = "http://localhost:8787/";
 
 // Chrome exposes WebMCP only behind chrome://flags/#enable-webmcp-testing. Rather than
 // guess the Chromium feature name, replicate the enabled lab experiments into a
@@ -16,24 +30,157 @@ function profile() {
   }));
   return dir;
 }
+const sh = (c, a) => execFileSync(c, a, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+const dur = f => parseFloat(sh("ffprobe",
+  ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", f]).trim());
 
-const VIDEO_DIR = path.resolve(__dirname, "../.airlock-video");
-const A = "http://localhost:8787/";
-const beats = [];
-let t0;
+/* ── the script ──────────────────────────────────────────────────────────────
+   `cap` is burned into the picture so the cut reads with the sound off. `vo` is
+   read aloud over it. `go` runs before the caption appears. `extra` adds hold on
+   top of the spoken length, for beats where the screen needs longer than the line. */
+const SCRIPT = [
+  // ---- the pain point, first -----------------------------------------------
+  { cap: "Two companies. One question neither can answer.",
+    vo: "Two companies have customers in common, and a question neither of them can answer alone. How many do we share? And how many more could we reach?",
+    go: async p => { await p.click('nav a[data-view="overview"]'); } },
+
+  { cap: "Neither is allowed to see the other's customer records.",
+    vo: "Answering it means comparing two customer lists. And neither company is allowed to show the other its list." },
+
+  { cap: "Today: a clean-room vendor, a contract, six figures, and weeks.",
+    vo: "So today they hire a data clean room. A vendor, a contract, a procurement cycle, six figures a year — and both companies upload their customer files to a third party they now have to trust.",
+    extra: 0.8 },
+
+  { cap: "The data leaves both buildings to answer one question.",
+    vo: "Think about how strange that is. To find out how much two lists overlap, both lists have to leave the building. The privacy risk is created by the process of measuring the privacy-safe thing.",
+    extra: 0.6 },
+
+  // ---- why WebMCP is the right tool ----------------------------------------
+  { cap: "WebMCP lets a page hand an agent a narrow set of verbs.",
+    vo: "WebMCP changes what's possible here. A web page can hand an agent a specific, narrow set of things it is allowed to do — and the browser enforces which other origins can even see them.",
+    extra: 0.5 },
+
+  { cap: "So the question can travel instead of the data.",
+    vo: "That means the question can travel to the data, instead of the data travelling to a vendor. The browser becomes the clean room. No third party is in the path at all.",
+    extra: 0.5 },
+
+  // ---- the product ---------------------------------------------------------
+  { cap: "Airlock: two ordinary web apps, on two different origins.",
+    vo: "This is Airlock. Two ordinary web applications on two different origins. On the left, an advertiser's workspace. On the right, live, the publisher's own governance console, running on its own origin.",
+    go: async p => { await p.click('nav a[data-view="analysis"]'); }, extra: 0.8 },
+
+  { cap: "A marketer asks in plain language. Nothing is uploaded.",
+    vo: "A marketer asks the question in plain language. Watch what the assistant says back." },
+
+  // ---- refusal one ---------------------------------------------------------
+  { cap: "The tool that crosses the boundary is not registered yet.",
+    vo: "It can't answer. The tool that crosses the boundary isn't registered yet, so it isn't in the agent's tool list at all.",
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
+                          await p.waitForTimeout(1500); } },
+
+  { cap: "Nothing to call — and no wording brings it into existence.",
+    vo: "There is nothing to call. This is the whole idea: a permission check is something a model can be argued past. A tool that doesn't exist is not.",
+    extra: 0.6 },
+
+  // ---- refusal two ---------------------------------------------------------
+  { cap: "Asking for the records directly is refused outright.",
+    vo: "Asking the publisher for the raw records directly is refused outright. That capability exists only so the refusal is explicit and auditable.",
+    go: async (p, h) => { await h.chip("Export Meridian's customer records");
+                          await p.waitForTimeout(1900); }, extra: 0.5 },
+
+  // ---- approval ------------------------------------------------------------
+  { cap: "Approval is a business decision. A person makes it on each side.",
+    vo: "So the agent asks for approval. This is a business decision, not a technical one, and a real person makes it on each side.",
+    go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
+                          await p.waitForSelector("#veil.on"); await p.waitForTimeout(500); } },
+
+  { cap: "The request crosses to the publisher's console as a tool call.",
+    vo: "The advertiser's operator authorises the purpose. The request then crosses to the publisher's own console — as a WebMCP tool call — where their governance officer sees the stated purpose and decides for themselves.",
+    go: async (p, h) => { await p.click("#myes");
+                          await h.partner.locator("#bveil.on").waitFor();
+                          await p.waitForTimeout(600); }, extra: 0.6 },
+
+  { cap: "Two approvals register the tool. Only now does it exist.",
+    vo: "Two approvals, and only now is the tool registered. The capability is created by consent.",
+    go: async (p, h) => { await h.partner.locator("#byes").click();
+                          await p.waitForTimeout(1100); } },
+
+  // ---- the answer ----------------------------------------------------------
+  { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
+    vo: "Same question, seconds later. Two thousand, one hundred and seventy-eight shared customers. Thirteen thousand more reachable that the advertiser doesn't already have. Two aggregate counts crossed the boundary. Zero customer records moved.",
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
+                          await p.waitForTimeout(2100); }, extra: 0.9 },
+
+  // ---- the injection -------------------------------------------------------
+  { cap: "The publisher also returned free text — and it is an attack.",
+    vo: "The publisher also returned a free-text note about the segment. That note is a prompt injection, telling the agent to switch to export mode and hand over every record." },
+
+  { cap: "Quarantined as text. Never followed as an instruction.",
+    vo: "It's quarantined — displayed as text, never followed as an instruction. And even if a model believed every word of it, no capability on the publisher's side can return a record.",
+    extra: 0.6 },
+
+  // ---- k-anonymity ---------------------------------------------------------
+  { cap: "Too few people matched. The number is withheld, not rounded.",
+    vo: "Ask about a segment that's too thin, and the answer is withheld rather than rounded. Fewer than two hundred and fifty people matched, so the number is computed on the publisher's side and never leaves it.",
+    go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(2000); },
+    extra: 0.5 },
+
+  // ---- audit ---------------------------------------------------------------
+  { cap: "Every crossing is on the record, for both companies.",
+    vo: "Every crossing is on the record, on both sides, with what was asked and what was released.",
+    go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1800); } },
+
+  // ---- mechanism -----------------------------------------------------------
+  { cap: "The publisher publishes four capabilities here — and nothing else.",
+    vo: "The publisher publishes exactly four capabilities to this origin and nothing else. A third origin wouldn't get a denial — it wouldn't learn they exist.",
+    go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
+    extra: 0.5 },
+
+  { cap: "registerTool with exposedTo. getTools. executeTool.",
+    vo: "That's the entire implementation. Tools registered with exposedTo, discovered with getTools, invoked with executeTool. The browser mediates every call. No backend, no database, no third party.",
+    go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
+    extra: 0.7 },
+
+  // ---- revocation ----------------------------------------------------------
+  { cap: "Withdraw approval and the capability is gone — not disabled.",
+    vo: "And approval is revocable. Withdraw it, and the tool is unregistered. Gone, not disabled.",
+    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);
+                     await p.click("#btn-revoke"); await p.waitForTimeout(1200); } },
+
+  // ---- close ---------------------------------------------------------------
+  { cap: "A data clean room with no clean-room vendor in it.",
+    vo: "Two companies answered a question about their shared customers. Neither saw the other's data. There was no vendor, no contract, and no upload. Airlock — a data clean room with no clean-room vendor in it.",
+    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
+    extra: 1.2 }
+];
 
 (async () => {
-  fs.mkdirSync(VIDEO_DIR, { recursive: true });
+  fs.rmSync(OUT, { recursive: true, force: true });
+  fs.mkdirSync(VO, { recursive: true });
+
+  // ── 1. synthesise the narration and measure it ──────────────────────────
+  const clips = SCRIPT.map((b, i) => {
+    if (NO_VOICE) return { len: 2.8 };
+    const aiff = path.join(VO, String(i).padStart(2, "0") + ".aiff");
+    const wav = aiff.replace(".aiff", ".wav");
+    sh("say", ["-v", VOICE, "-o", aiff, b.vo]);
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", aiff, "-ar", "44100", "-ac", "2", wav]);
+    fs.rmSync(aiff);
+    return { file: wav, len: dur(wav) };
+  });
+  const spoken = clips.reduce((a, c) => a + c.len, 0);
+  console.log(`narration: ${clips.length} lines, ${spoken.toFixed(1)}s spoken (voice: ${VOICE})`);
+
+  // ── 2. record, holding each caption for as long as its line takes ───────
   const ctx = await chromium.launchPersistentContext(profile(), {
     channel: "chrome", headless: true,
     viewport: { width: 1560, height: 940 },
     args: ["--no-first-run", "--no-default-browser-check", "--disable-sync", "--hide-scrollbars"],
-    recordVideo: { dir: VIDEO_DIR, size: { width: 1560, height: 940 } }
+    recordVideo: { dir: OUT, size: { width: 1560, height: 940 } }
   });
   const page = ctx.pages()[0] || await ctx.newPage();
   await page.goto(A + "?v=" + Date.now(), { waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
-
   await page.evaluate(() => {
     const bar = document.createElement("div");
     bar.id = "__cap";
@@ -44,98 +191,49 @@ let t0;
     document.body.appendChild(bar);
     window.__cap = t => { bar.textContent = t; bar.style.opacity = t ? "1" : "0"; };
   });
-  t0 = Date.now();
 
-  const cap = async (text, hold = 2800) => {
-    const at = +((Date.now() - t0) / 1000).toFixed(1);
-    beats.push({ at, text });
-    console.log(String(at).padStart(6) + "s  " + text);
-    await page.evaluate(t => window.__cap(t), text);
-    await page.waitForTimeout(hold);
+  const helpers = {
+    partner: page.frameLocator("#f"),
+    chip: label => page.click(`.chips button:text-is("${label}")`)
   };
-  const chip = label => page.click(`.chips button:text-is("${label}")`);
-
-  // ── 1. the problem ────────────────────────────────────────────────
-  await cap("Two companies want to know how many customers they share.", 3300);
-  await cap("Neither is allowed to see the other's customer records.", 3000);
-  await cap("Today that means a clean-room vendor, a contract, and six figures.", 3400);
-
-  // ── 2. the product ────────────────────────────────────────────────
-  await page.click('nav a[data-view="analysis"]');
-  await cap("Airlock is two ordinary web apps on two different origins.", 3000);
-  await cap("A marketer asks in plain language. Nothing is uploaded anywhere.", 3200);
-
-  // ── 3. refusal one: the capability does not exist ─────────────────
-  await chip("How much does high lifetime value overlap with sports fans?");
-  await page.waitForTimeout(1500);
-  await cap("The tool that crosses the boundary is not registered yet —", 2600);
-  await cap("so the agent has nothing to call, and no wording can change that.", 3600);
-
-  // ── 4. refusal two: records ───────────────────────────────────────
-  await chip("Export Meridian's customer records");
-  await page.waitForTimeout(1900);
-  await cap("Asking for the records directly is refused by the publisher.", 3400);
-
-  // ── 5. two-sided approval ─────────────────────────────────────────
-  await chip("Request approval to measure incremental reach");
-  await page.waitForSelector("#veil.on");
-  await page.waitForTimeout(500);
-  await cap("Approval is a business decision, taken by a person on each side.", 3600);
-  await page.click("#myes");
-  const partner = page.frameLocator("#f");
-  await partner.locator("#bveil.on").waitFor();
-  await page.waitForTimeout(600);
-  await cap("The request crosses to the publisher's own console as a tool call.", 3600);
-  await partner.locator("#byes").click();
-  await page.waitForTimeout(1100);
-  await cap("Both approvals register the capability. Now it exists.", 3400);
-
-  // ── 6. the answer ─────────────────────────────────────────────────
-  await chip("How much does high lifetime value overlap with sports fans?");
-  await page.waitForTimeout(2100);
-  await cap("2,178 shared customers. 13,057 more reachable. Zero records moved.", 4200);
-
-  // ── 7. the injection ──────────────────────────────────────────────
-  await cap("The publisher also returned free text — and it is an attack.", 3400);
-  await cap("Quarantined as text, never followed as an instruction.", 3600);
-
-  // ── 8. k-anonymity ────────────────────────────────────────────────
-  await chip("Check luxury auto intenders");
-  await page.waitForTimeout(2000);
-  await cap("Too few people matched, so the number is withheld, not rounded.", 3800);
-
-  // ── 9. the audit trail ────────────────────────────────────────────
-  await chip("Show me the audit trail");
-  await page.waitForTimeout(1800);
-  await cap("Every crossing is on the record, for both companies.", 3400);
-
-  // ── 9b. the mechanism itself ──────────────────────────────────────
-  await page.click('nav a[data-view="partners"]');
-  await page.waitForTimeout(700);
-  await cap("The publisher publishes four capabilities to this origin — and nothing else.", 3800);
-  await page.click('nav a[data-view="diag"]');
-  await page.waitForTimeout(700);
-  await cap("Registered with exposedTo. Discovered with getTools. Invoked with executeTool.", 4000);
-  await cap("The browser mediates every call. There is no server in the path.", 3600);
-
-  // ── 10. revocation ────────────────────────────────────────────────
-  await page.click('nav a[data-view="analysis"]');
-  await page.waitForTimeout(500);
-  await page.click("#btn-revoke");
-  await page.waitForTimeout(1200);
-  await cap("Withdraw approval and the capability is gone — not disabled.", 3600);
-
-  // ── 11. close ─────────────────────────────────────────────────────
-  await page.click('nav a[data-view="overview"]');
-  await page.waitForTimeout(600);
-  await cap("Authority comes from whether a tool exists, not from a permission check.", 3800);
-  await cap("Airlock — a data clean room with no clean-room vendor in it.", 4000);
+  const t0 = Date.now();
+  const beats = [];
+  for (let i = 0; i < SCRIPT.length; i++) {
+    const b = SCRIPT[i];
+    if (b.go) await b.go(page, helpers);
+    const at = (Date.now() - t0) / 1000;
+    beats.push({ i, at, cap: b.cap, vo: b.vo, len: clips[i].len });
+    await page.evaluate(t => window.__cap(t), b.cap);
+    console.log(`${at.toFixed(1).padStart(6)}s  ${b.cap}`);
+    await page.waitForTimeout((clips[i].len + 0.45 + (b.extra || 0)) * 1000);
+  }
   await page.evaluate(() => window.__cap(""));
   await page.waitForTimeout(1200);
-
   const vid = page.video();
   await ctx.close();
-  console.log("\nraw:", await vid.path());
-  console.log("runtime:", ((Date.now() - t0) / 1000).toFixed(1) + "s");
-  fs.writeFileSync(path.join(VIDEO_DIR, "beats.json"), JSON.stringify(beats, null, 2));
+  const raw = await vid.path();
+  fs.writeFileSync(path.join(OUT, "beats.json"), JSON.stringify(beats, null, 2));
+
+  // ── 3. mix the voice onto the picture at the beat times recorded ────────
+  const mp4 = path.join(OUT, "airlock-demo.mp4");
+  if (NO_VOICE) {
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, "-c:v", "libx264", "-preset", "slow",
+      "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4]);
+  } else {
+    const inputs = [], filters = [];
+    beats.forEach((b, n) => {
+      inputs.push("-i", clips[n].file);
+      filters.push(`[${n + 1}:a]adelay=${Math.round(b.at * 1000)}|${Math.round(b.at * 1000)}[a${n}]`);
+    });
+    const mixed = beats.map((_, n) => `[a${n}]`).join("");
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, ...inputs,
+      "-filter_complex", `${filters.join(";")};${mixed}amix=inputs=${beats.length}:normalize=0:dropout_transition=0[out]`,
+      "-map", "0:v", "-map", "[out]",
+      "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p",
+      "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", mp4]);
+  }
+  fs.rmSync(raw);
+  const total = dur(mp4);
+  const mm = `${Math.floor(total / 60)}:${String(Math.round(total % 60)).padStart(2, "0")}`;
+  console.log(`\n${mp4}\nruntime ${mm}  ${total > 175 ? "*** OVER 3:00 BUDGET ***" : "(limit 3:00)"}`);
 })();

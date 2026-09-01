@@ -50,6 +50,23 @@ Every button in the UI calls the page's own registered tools through `executeToo
 The human interface and the agent share one action layer — there is no back door for
 either.
 
+## Drive it with a real agent
+
+Airlock registers plain WebMCP tools, so any agent can operate it — nothing is scripted
+for a particular one. In Chrome, open the built-in agent (it runs
+`gemini-3-flash-preview`) and ask in your own words:
+
+> How much does our high lifetime value audience overlap with Meridian's sports fans?
+
+Before approval it will report that no such tool exists, because none does. Ask it to
+export Meridian's records and it is refused. Ask it to request approval and a real person
+has to decide on each side.
+
+The assistant panel inside the app is a **fallback** for browsers without an agent: a
+deterministic keyword router, no model, calling the identical `getTools()` and
+`executeTool()`. It is labelled as such in the UI. Airlock itself never calls a model,
+holds no API key, and has no backend.
+
 ## Run locally
 
 ```bash
