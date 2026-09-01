@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 
 const src = process.argv[2];
-const GAP = parseFloat(process.argv[3] || "1.00");   // silence long enough to count as a break
+const GAP = parseFloat(process.argv[3] || "1.15");   // silence long enough to count as a break
 const FLOOR = process.argv[4] || "-40dB";            // anything quieter counts as silence
 if (!src) { console.error("usage: node tools/split-vo.js <recording> [minGap=0.55] [floor=-34dB]"); process.exit(1); }
 

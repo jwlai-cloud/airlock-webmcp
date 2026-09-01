@@ -72,23 +72,23 @@ const SCRIPT = [
   { cap: "Airlock starts as an ordinary web app.",
     vo: "Airlock starts as an ordinary web app. A marketing team's workspace, with its own audiences and its own buttons." },
 
-  { cap: "WebMCP lets the app write down what it can do.",
+  { cap: "WebMCP: the app declares what it can do.",
     vo: "WebMCP lets it write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
     go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
     extra: 0.3 },
 
-  { cap: "So an agent operates the product — no screenshots, no guessing.",
+  { cap: "An agent calls those tools — no screenshots, no guessing.",
     vo: "So an agent operates the product directly, instead of reading the screen and guessing.",
     go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(600); } },
 
   // ---- the twist: the answer needs a second app --------------------------
-  { cap: "But this answer needs a second app, at another company.",
+  { cap: "This answer needs a second origin — WebMCP's exposedTo.",
     vo: "But this question needs a second app, owned by another company, on another origin. Live on the right, in a cross-origin frame.",
     extra: 0.3 },
 
 
   // ---- refusal one -------------------------------------------------------
-  { cap: "The tool that crosses the boundary is not registered yet.",
+  { cap: "That tool is not registered, so getTools() never returns it.",
     vo: "A marketer asks in plain language. The agent cannot answer: the tool that crosses the boundary is not registered, so it is not in its list.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
                           await p.waitForTimeout(1500); }, extra: 0.3 },
@@ -114,7 +114,7 @@ const SCRIPT = [
                           await h.partner.locator("#bveil.on").waitFor();
                           await p.waitForTimeout(600); }, extra: 0.25 },
 
-  { cap: "Two approvals register the tool. Only now does it exist.",
+  { cap: "Two approvals → registerTool(). Only now does it exist.",
     vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
     go: async (p, h) => { await h.partner.locator("#byes").click();
                           await p.waitForTimeout(1100); } },
@@ -145,18 +145,18 @@ const SCRIPT = [
     go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1400); } },
 
   // ---- mechanism ---------------------------------------------------------
-  { cap: "The publisher publishes four capabilities here — and nothing else.",
+  { cap: "exposedTo: four capabilities to this origin, nothing else.",
     vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
     extra: 0.2 },
 
-  { cap: "registerTool with exposedTo. getTools. executeTool.",
+  { cap: "All of it: registerTool · exposedTo · getTools · executeTool.",
     vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.",
     go: async (p, h) => { await h.showDiagram("airlock-architecture.png"); },
     extra: 0.5 },
 
   // ---- revocation --------------------------------------------------------
-  { cap: "Withdraw approval and the capability is gone — not disabled.",
+  { cap: "Withdraw approval → the signal aborts → the tool is gone.",
     vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
     go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(450);
                      await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);

@@ -1,0 +1,7 @@
+narration: 23 lines, 2:31 spoken (your own recording)
+projected runtime 2:58 (spoken 2:31 + ~26s of picture)
+
+*** 2:58 is too close to the 3:00 ceiling. ***
+Trim the narration, or lower the `extra` holds in tools/capture.js.
+Pass --force to record anyway.
+
