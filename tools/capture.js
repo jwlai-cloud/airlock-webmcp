@@ -32,7 +32,9 @@ const GCP_PROJECT = arg("--project", process.env.GOOGLE_CLOUD_PROJECT || "");
 
 const OUT = path.resolve(__dirname, "../.airlock-video");
 const VO = path.join(OUT, "vo");
-const A = "http://localhost:8787/";
+// Recording against the deployed pair puts two real origins on camera. Two localhost
+// ports are genuinely different origins, but they do not look like two companies.
+const A = arg("--base", "http://localhost:8787/");
 
 // Chrome exposes WebMCP only behind chrome://flags/#enable-webmcp-testing. Rather than
 // guess the Chromium feature name, replicate the enabled lab experiments into a
@@ -55,7 +57,7 @@ const dur = f => parseFloat(sh("ffprobe",
    top of the spoken length, for beats where the screen needs longer than the line. */
 const SCRIPT = [
   // ---- the problem -------------------------------------------------------
-  { cap: "Two companies. One question neither can answer.",
+  { cap: "Airlock — two companies, one question neither can answer.",
     vo: "Two companies share customers, and neither can say how many. The most basic question in a partnership.",
     go: async p => { await p.click('nav a[data-view="overview"]'); } },
 
@@ -114,10 +116,14 @@ const SCRIPT = [
                           await h.partner.locator("#bveil.on").waitFor();
                           await p.waitForTimeout(600); }, extra: 0.15 },
 
-  { cap: "Two approvals → registerTool(). Only now does it exist.",
+  { cap: "Two approvals → registerTool(). Watch the tool list.",
     vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
     go: async (p, h) => { await h.partner.locator("#byes").click();
-                          await p.waitForTimeout(1100); } },
+                          await p.waitForTimeout(700);
+                          // the differentiator has to be visible, not asserted: this table
+                          // flips estimate_overlap from "not registered" to "registered"
+                          await p.click('nav a[data-view="diag"]');
+                          await p.waitForTimeout(900); } },
 
   // ---- the answer --------------------------------------------------------
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
@@ -159,8 +165,9 @@ const SCRIPT = [
   { cap: "Withdraw approval → the signal aborts → the tool is gone.",
     vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
     go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(450);
-                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);
-                     await p.click("#btn-revoke"); await p.waitForTimeout(1200); } },
+                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(400);
+                     await p.click("#btn-revoke"); await p.waitForTimeout(600);
+                     await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(800); } },
 
   // ---- close -------------------------------------------------------------
   { cap: "A data clean room with no clean-room vendor in it.",
@@ -323,7 +330,8 @@ if (argv.includes("--list-voices")) {
     recordVideo: { dir: OUT, size: { width: 1440, height: 810 } }
   });
   const page = ctx.pages()[0] || await ctx.newPage();
-  await page.goto(A + "?v=" + Date.now(), { waitUntil: "networkidle" });
+  await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(),
+                  { waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
   await page.evaluate(() => {
     const bar = document.createElement("div");
