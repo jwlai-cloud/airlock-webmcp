@@ -132,9 +132,32 @@ function log(m, c = "dim") {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
-const B_URL = new URLSearchParams(location.search).get("b") || "http://localhost:8788/";
+/* ---------- partner origin ----------
+   Airlock needs two *distinct* origins; same-origin would defeat the demonstration.
+   Set PARTNER_URL to origin B's deployed URL before deploying. A deployed page must
+   never fall back to localhost: it would point at the visitor's own machine, get
+   blocked as mixed content, and fail silently. */
+const PARTNER_URL = "https://airlock-publisher.netlify.app/";   // ← set on deploy
+const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
+const B_URL = new URLSearchParams(location.search).get("b")
+  || (LOCAL ? "http://localhost:8788/" : PARTNER_URL);
 const B_ORIGIN = new URL(B_URL, location.href).origin;
 $("f").src = B_URL + (B_URL.includes("?") ? "&" : "?") + "a=" + encodeURIComponent(location.origin);
+
+/* If the partner never registers, say so in plain language rather than showing an
+   empty pane. A judge opening a broken demo should learn why in one sentence. */
+function partnerUnreachable(detail) {
+  const box = el("div", "quar");
+  box.append(
+    el("div", "hd", "partner origin unreachable"),
+    el("div", "body",
+      `Origin A could not discover any tools at ${B_ORIGIN}. Airlock needs two live `
+      + `origins. ${detail}`),
+    el("div", "foot", "Point at a different partner with ?b=https://partner.example/")
+  );
+  $("quarantine").prepend(box);
+  log("partner origin unreachable — see the ledger pane", "bad");
+}
 
 const K = 250, receipts = [];
 const ok = o => ({ content: [{ type: "text", text: JSON.stringify(o) }] });
@@ -330,10 +353,16 @@ if (!("modelContext" in document)) {
     const mc = document.modelContext;
     // B's registerTool calls resolve a tick or two after its document loads, so poll
     // rather than sampling once — a single read reports a false negative.
-    for (let i = 0; i < 40; i++) {
+    let reached = false;
+    for (let i = 0; i < 60; i++) {
       const t = await mc.getTools({ fromOrigins: [B_ORIGIN] }).catch(() => []);
-      if (t.some(x => x.origin === B_ORIGIN)) break;
-      await new Promise(r => setTimeout(r, 50));
+      if (t.some(x => x.origin === B_ORIGIN)) { reached = true; break; }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    if (!reached) {
+      partnerUnreachable(location.protocol === "https:" && B_URL.startsWith("http:")
+        ? "This page is HTTPS and the partner URL is plain HTTP, which the browser blocks."
+        : "The partner page may not be deployed, or may not list this origin in exposedTo.");
     }
     const lines = [
       `document.modelContext: present`,
