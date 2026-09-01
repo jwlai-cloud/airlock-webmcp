@@ -340,6 +340,26 @@ tr:last-child td{border-bottom:0}
                 nothing else. You cannot see their records; you cannot see capabilities they
                 have not published to you.</p>
               <div class=scroll><table id=t-partner-tools></table></div>
+              <div class=card style="margin-top:4px">
+                <h3>Check a segment's reach <span class="pill info">declarative tool</span></h3>
+                <div class=body>
+                  <p class=lead style="margin-bottom:12px">Reach is an aggregate and needs no
+                    approval — it says nothing about your customers. This form is also a
+                    WebMCP tool: the browser reads the markup and publishes it, so an agent
+                    can fill it in without a line of JavaScript from us.</p>
+                  <form id=reachform
+                        toolname="check_segment_reach"
+                        tooldescription="Look up the total reach of one partner audience segment. Returns an aggregate count only; never customer records.">
+                    <div class=row>
+                      <label class=f>Segment
+                        <select name=segment id=r-seg
+                          toolparamdescription="Partner segment name, such as sports-fans or commuters"></select></label>
+                      <button class=primary type=submit style="align-self:flex-end">Check reach</button>
+                    </div>
+                  </form>
+                  <div id=reachout style="margin-top:12px"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -544,10 +564,39 @@ for (const b of document.querySelectorAll(".tabs button")) b.onclick = () => sho
   }
   for (const c of COHORTS) $("f-cohort").append(new Option(c.name, c.id));
   for (const s of SEGMENTS) $("f-segment").append(new Option(s.name, s.slug));
+  for (const s of SEGMENTS) $("r-seg").append(new Option(s.name, s.slug));
   $("k-aud").textContent = COHORTS.length;
   $("n-aud").textContent = COHORTS.length;
   $("k-part").textContent = "1"; $("n-part").textContent = "1";
 })();
+
+/* ── declarative tool ─────────────────────────────────────────────────────
+   The <form> above carries toolname/tooldescription, so the browser synthesises a
+   JSON Schema from the markup and publishes it as a tool -- no registerTool call.
+   An agent filling it in submits the form, which runs exactly this handler, so the
+   human path and the agent path are the same code by construction. */
+async function checkReach(segment) {
+  const out = $("reachout");
+  out.textContent = "";
+  try {
+    const r = await callPartner("publisher_segment_reach", { segment });
+    receipt("A→B", "publisher_segment_reach", `${segment} · reach ${nf(r.reach)}`, false);
+    const box = el("div", "result");
+    const head = el("div", "rh");
+    head.append(svg("i-check", 15), el("span", null, segment));
+    const body = el("div", "rb");
+    const fig = el("div", "stat");
+    fig.append(el("span", "n mono", nf(r.reach)), el("span", "l", "people reachable in this segment"));
+    body.append(fig);
+    if (r.note) body.append(quarantineCard("Meridian Media", r.note));
+    box.append(head, body); out.append(box);
+    return r;
+  } catch (e) { out.append(el("div", "muted", "Could not reach the partner: " + e.message)); }
+}
+$("reachform").addEventListener("submit", e => {
+  e.preventDefault();
+  checkReach(new FormData(e.target).get("segment"));
+});
 
 /* ── audit trail ─────────────────────────────────────────────────────── */
 const receipts = [];

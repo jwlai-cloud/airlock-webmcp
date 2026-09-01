@@ -249,6 +249,38 @@ the boundary would leak in the opposite direction from the one being advertised.
 
 ---
 
+## 5b. The declarative half
+
+Airlock used only the imperative API at first, which is half the surface. WebMCP also lets
+the **browser synthesise a tool from a `<form>`** — spec §4.3, and implemented in Chrome
+152:
+
+```html
+<form toolname="check_segment_reach"
+      tooldescription="Look up the total reach of one partner audience segment.">
+  <select name="segment"
+          toolparamdescription="Partner segment name, such as sports-fans"></select>
+  <button type="submit">Check reach</button>
+</form>
+```
+
+No `registerTool` call. The browser reads the markup and produces
+`{type:"object", properties:{segment:{type:"string", description:"…"}}}` on its own.
+An agent filling the tool in submits the form, which runs the page's ordinary submit
+handler — so the human path and the agent path are the same code *by construction*,
+not by discipline.
+
+Two observations from testing it:
+
+- A declarative tool's `inputSchema` comes back as a **JSON string**, where an
+  imperative tool's is an object. Parse defensively.
+- Declarative tools carry no `annotations` key at all, so there is no way to mark one
+  `readOnlyHint` or `untrustedContentHint`. Anything returning untrusted text needs the
+  imperative API. Airlock uses declarative only for segment reach, which is ungated and
+  needs no approval, and keeps everything gated or untrusted on the imperative side.
+- `:tool-form-active` is a real pseudo-class and matches while the tool is running —
+  useful for showing the user that an agent is driving their form.
+
 ## 6. Things worth knowing that Airlock does not use
 
 - **`AbortSignal` on execution.** `executeTool(tool, input, { signal })` cancels a call

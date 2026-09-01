@@ -66,9 +66,21 @@ const check = (name, pass, detail = "") => {
   // ── origin A's own tools, estimate_overlap withheld ──────────────
   const own = await page.evaluate(() => document.modelContext.getTools()
     .then(ts => ts.map(t => t.name).sort()));
-  check("A exposes 4 tools before consent", own.length === 4, own.join(", "));
+  check("A exposes 5 tools before consent", own.length === 5, own.join(", "));
   check("estimate_overlap is NOT registered before consent",
         !own.includes("estimate_overlap"));
+
+  // the <form> carries toolname/tooldescription; the browser synthesises the schema
+  const decl = await page.evaluate(async () => {
+    const t = (await document.modelContext.getTools()).find(x => x.name === "check_segment_reach");
+    if (!t) return null;
+    const schema = typeof t.inputSchema === "string" ? JSON.parse(t.inputSchema) : t.inputSchema;
+    return { desc: t.description, props: Object.keys(schema?.properties || {}) };
+  });
+  check("declarative form tool is published by the browser", !!decl,
+        decl ? decl.props.join(", ") : "check_segment_reach absent");
+  check("browser synthesised its schema from the markup",
+        !!decl && decl.props.includes("segment"));
 
   // ── cross-origin discovery ───────────────────────────────────────
   const disco = await page.evaluate(async o => {
