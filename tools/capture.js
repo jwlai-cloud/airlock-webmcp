@@ -170,7 +170,7 @@ const SCRIPT = [
                      await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(800); } },
 
   // ---- close -------------------------------------------------------------
-  { cap: "A data clean room with no clean-room vendor in it.",
+  { cap: "A permission check can be argued past. A tool that does not exist cannot.\ngithub.com/jwlai-cloud/airlock-webmcp",
     vo: "Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
     extra: 0.6 }
@@ -339,7 +339,7 @@ if (argv.includes("--list-voices")) {
     bar.style.cssText = `position:fixed;left:0;right:0;bottom:0;z-index:200;
       background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:44px 36px 24px;
       font:500 21px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
-      letter-spacing:-.012em;transition:opacity .3s ease;opacity:0;pointer-events:none`;
+      letter-spacing:-.012em;white-space:pre-line;transition:opacity .3s ease;opacity:0;pointer-events:none`;
     document.body.appendChild(bar);
     window.__cap = t => { bar.textContent = t; bar.style.opacity = t ? "1" : "0"; };
   });
