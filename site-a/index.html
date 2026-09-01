@@ -485,7 +485,7 @@ const nf = n => Number(n).toLocaleString("en-US");
    PARTNER_URL to origin B's deployed URL before deploying. A deployed page must
    never fall back to localhost — it would point at the visitor's own machine, be
    blocked as mixed content, and fail silently. */
-const PARTNER_URL = "https://airlock-publisher.netlify.app/";   // ← set on deploy
+const PARTNER_URL = "https://rawcdn.githack.com/jwlai-cloud/airlock-webmcp/master/site-b/index.html";   // ← set on deploy
 const LOCAL = ["localhost", "127.0.0.1"].includes(location.hostname);
 const B_URL = new URLSearchParams(location.search).get("b")
   || (LOCAL ? "http://localhost:8788/" : PARTNER_URL);
