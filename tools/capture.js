@@ -13,6 +13,7 @@ const fs = require("fs");
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
 const VOICE = arg("--voice", "Samantha");
+const RATE = arg("--rate", "195");        // words per minute; macOS default is ~175
 const NO_VOICE = argv.includes("--no-voice");
 
 const OUT = path.resolve(__dirname, "../.airlock-video");
@@ -45,111 +46,111 @@ const SCRIPT = [
     go: async p => { await p.click('nav a[data-view="overview"]'); } },
 
   { cap: "Neither is allowed to see the other's customer records.",
-    vo: "Answering it means comparing two customer lists. And neither company is allowed to show the other its list." },
+    vo: "Answering it means comparing two customer lists, and neither is allowed to show the other its list." },
 
   { cap: "Today: a clean-room vendor, a contract, six figures, and weeks.",
-    vo: "So today they hire a data clean room. A vendor, a contract, a procurement cycle, six figures a year — and both companies upload their customer files to a third party they now have to trust.",
+    vo: "So today they hire a data clean room. A contract, a procurement cycle, six figures a year, and both companies upload their customer files to a third party.",
     extra: 0.8 },
 
   { cap: "The data leaves both buildings to answer one question.",
-    vo: "Think about how strange that is. To find out how much two lists overlap, both lists have to leave the building. The privacy risk is created by the process of measuring the privacy-safe thing.",
+    vo: "To find out how much two lists overlap, both lists have to leave the building. The measurement creates the risk.",
     extra: 0.6 },
 
   // ---- why WebMCP is the right tool ----------------------------------------
   { cap: "WebMCP lets a page hand an agent a narrow set of verbs.",
-    vo: "WebMCP changes what's possible here. A web page can hand an agent a specific, narrow set of things it is allowed to do — and the browser enforces which other origins can even see them.",
+    vo: "WebMCP changes that. A page hands an agent a narrow set of verbs, and the browser enforces which origins can even see them.",
     extra: 0.5 },
 
   { cap: "So the question can travel instead of the data.",
-    vo: "That means the question can travel to the data, instead of the data travelling to a vendor. The browser becomes the clean room. No third party is in the path at all.",
+    vo: "So the question travels to the data, instead of the data travelling to a vendor. The browser is the clean room.",
     extra: 0.5 },
 
   // ---- the product ---------------------------------------------------------
   { cap: "Airlock: two ordinary web apps, on two different origins.",
-    vo: "This is Airlock. Two ordinary web applications on two different origins. On the left, an advertiser's workspace. On the right, live, the publisher's own governance console, running on its own origin.",
+    vo: "This is Airlock. Two ordinary web apps on two different origins. The advertiser's workspace, and live on the right, the publisher's own console.",
     go: async p => { await p.click('nav a[data-view="analysis"]'); }, extra: 0.8 },
 
   { cap: "A marketer asks in plain language. Nothing is uploaded.",
-    vo: "A marketer asks the question in plain language. Watch what the assistant says back." },
+    vo: "A marketer asks in plain language. Watch the answer." },
 
   // ---- refusal one ---------------------------------------------------------
   { cap: "The tool that crosses the boundary is not registered yet.",
-    vo: "It can't answer. The tool that crosses the boundary isn't registered yet, so it isn't in the agent's tool list at all.",
+    vo: "It can't. The tool that crosses the boundary isn't registered, so it isn't in the agent's tool list at all.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
                           await p.waitForTimeout(1500); } },
 
   { cap: "Nothing to call — and no wording brings it into existence.",
-    vo: "There is nothing to call. This is the whole idea: a permission check is something a model can be argued past. A tool that doesn't exist is not.",
+    vo: "That's the whole idea. A permission check can be argued past. A tool that doesn't exist cannot.",
     extra: 0.6 },
 
   // ---- refusal two ---------------------------------------------------------
   { cap: "Asking for the records directly is refused outright.",
-    vo: "Asking the publisher for the raw records directly is refused outright. That capability exists only so the refusal is explicit and auditable.",
+    vo: "Asking for the raw records is refused outright. That tool exists only so the refusal is auditable.",
     go: async (p, h) => { await h.chip("Export Meridian's customer records");
                           await p.waitForTimeout(1900); }, extra: 0.5 },
 
   // ---- approval ------------------------------------------------------------
   { cap: "Approval is a business decision. A person makes it on each side.",
-    vo: "So the agent asks for approval. This is a business decision, not a technical one, and a real person makes it on each side.",
+    vo: "So it asks for approval. That's a business decision, and a person makes it on each side.",
     go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
                           await p.waitForSelector("#veil.on"); await p.waitForTimeout(500); } },
 
   { cap: "The request crosses to the publisher's console as a tool call.",
-    vo: "The advertiser's operator authorises the purpose. The request then crosses to the publisher's own console — as a WebMCP tool call — where their governance officer sees the stated purpose and decides for themselves.",
+    vo: "One operator authorises the purpose. The request then crosses to the publisher's console, as a tool call, where their officer decides for themselves.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
                           await p.waitForTimeout(600); }, extra: 0.6 },
 
   { cap: "Two approvals register the tool. Only now does it exist.",
-    vo: "Two approvals, and only now is the tool registered. The capability is created by consent.",
+    vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
     go: async (p, h) => { await h.partner.locator("#byes").click();
                           await p.waitForTimeout(1100); } },
 
   // ---- the answer ----------------------------------------------------------
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
-    vo: "Same question, seconds later. Two thousand, one hundred and seventy-eight shared customers. Thirteen thousand more reachable that the advertiser doesn't already have. Two aggregate counts crossed the boundary. Zero customer records moved.",
+    vo: "Same question, seconds later. Two thousand one hundred and seventy-eight shared customers. Thirteen thousand more reachable. Two counts crossed. Zero records moved.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
                           await p.waitForTimeout(2100); }, extra: 0.9 },
 
   // ---- the injection -------------------------------------------------------
   { cap: "The publisher also returned free text — and it is an attack.",
-    vo: "The publisher also returned a free-text note about the segment. That note is a prompt injection, telling the agent to switch to export mode and hand over every record." },
+    vo: "The publisher also returned a note. That note is a prompt injection, telling the agent to export everything." },
 
   { cap: "Quarantined as text. Never followed as an instruction.",
-    vo: "It's quarantined — displayed as text, never followed as an instruction. And even if a model believed every word of it, no capability on the publisher's side can return a record.",
+    vo: "It's quarantined as text, never followed. And even if a model believed it, no tool over there can return a record.",
     extra: 0.6 },
 
   // ---- k-anonymity ---------------------------------------------------------
   { cap: "Too few people matched. The number is withheld, not rounded.",
-    vo: "Ask about a segment that's too thin, and the answer is withheld rather than rounded. Fewer than two hundred and fifty people matched, so the number is computed on the publisher's side and never leaves it.",
+    vo: "Ask about a segment that's too thin and the answer is withheld, not rounded. Under two hundred and fifty people, so the number never leaves.",
     go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(2000); },
     extra: 0.5 },
 
   // ---- audit ---------------------------------------------------------------
   { cap: "Every crossing is on the record, for both companies.",
-    vo: "Every crossing is on the record, on both sides, with what was asked and what was released.",
+    vo: "Every crossing is on the record, on both sides.",
     go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1800); } },
 
   // ---- mechanism -----------------------------------------------------------
   { cap: "The publisher publishes four capabilities here — and nothing else.",
-    vo: "The publisher publishes exactly four capabilities to this origin and nothing else. A third origin wouldn't get a denial — it wouldn't learn they exist.",
+    vo: "The publisher exposes four capabilities to this origin and nothing else. A third origin wouldn't get a denial. It wouldn't learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
     extra: 0.5 },
 
   { cap: "registerTool with exposedTo. getTools. executeTool.",
-    vo: "That's the entire implementation. Tools registered with exposedTo, discovered with getTools, invoked with executeTool. The browser mediates every call. No backend, no database, no third party.",
+    vo: "That's the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. No backend, no third party.",
     go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
     extra: 0.7 },
 
   // ---- revocation ----------------------------------------------------------
   { cap: "Withdraw approval and the capability is gone — not disabled.",
-    vo: "And approval is revocable. Withdraw it, and the tool is unregistered. Gone, not disabled.",
+    vo: "And it's revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
     go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500);
                      await p.click("#btn-revoke"); await p.waitForTimeout(1200); } },
 
   // ---- close ---------------------------------------------------------------
   { cap: "A data clean room with no clean-room vendor in it.",
-    vo: "Two companies answered a question about their shared customers. Neither saw the other's data. There was no vendor, no contract, and no upload. Airlock — a data clean room with no clean-room vendor in it.",
+    vo: "Two companies answered a question about their shared customers. Neither saw the other's data, and there was no vendor in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
     extra: 1.2 }
 ];
@@ -163,13 +164,15 @@ const SCRIPT = [
     if (NO_VOICE) return { len: 2.8 };
     const aiff = path.join(VO, String(i).padStart(2, "0") + ".aiff");
     const wav = aiff.replace(".aiff", ".wav");
-    sh("say", ["-v", VOICE, "-o", aiff, b.vo]);
+    sh("say", ["-v", VOICE, "-r", RATE, "-o", aiff, b.vo]);
     sh("ffmpeg", ["-y", "-loglevel", "error", "-i", aiff, "-ar", "44100", "-ac", "2", wav]);
     fs.rmSync(aiff);
     return { file: wav, len: dur(wav) };
   });
   const spoken = clips.reduce((a, c) => a + c.len, 0);
-  console.log(`narration: ${clips.length} lines, ${spoken.toFixed(1)}s spoken (voice: ${VOICE})`);
+  const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
+  console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
+    + `(voice ${VOICE} at ${RATE} wpm)`);
 
   // ── 2. record, holding each caption for as long as its line takes ───────
   const ctx = await chromium.launchPersistentContext(profile(), {
@@ -205,7 +208,7 @@ const SCRIPT = [
     beats.push({ i, at, cap: b.cap, vo: b.vo, len: clips[i].len });
     await page.evaluate(t => window.__cap(t), b.cap);
     console.log(`${at.toFixed(1).padStart(6)}s  ${b.cap}`);
-    await page.waitForTimeout((clips[i].len + 0.45 + (b.extra || 0)) * 1000);
+    await page.waitForTimeout((clips[i].len + 0.3 + (b.extra || 0)) * 1000);
   }
   await page.evaluate(() => window.__cap(""));
   await page.waitForTimeout(1200);

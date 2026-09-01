@@ -17,8 +17,12 @@ function profile() {
 }
 
 
-const A = "http://localhost:8787/";
-const B_ORIGIN = "http://localhost:8788";
+// Defaults to the local pair; pass --base to check a deployed one, in which case the
+// partner origin is whatever that page is actually configured to talk to.
+const argv = process.argv.slice(2);
+const baseArg = argv.indexOf("--base");
+const A = baseArg >= 0 ? argv[baseArg + 1] : "http://localhost:8787/";
+let B_ORIGIN = "http://localhost:8788";
 const PROFILE = profile();
 const HEADED = process.argv.includes("--headed");
 const VIDEO = process.argv.includes("--video");
@@ -42,8 +46,12 @@ const check = (name, pass, detail = "") => {
   page.on("dialog", d => d.accept());
   page.on("pageerror", e => check("no uncaught page error", false, e.message));
 
-  await page.goto(A + "?v=" + Date.now(), { waitUntil: "networkidle" });
+  await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(),
+                  { waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
+  B_ORIGIN = await page.evaluate(() => window.B_ORIGIN
+    || new URL(document.getElementById("f").src).origin);
+  console.log(`      checking ${A}\n      partner ${B_ORIGIN}\n`);
 
   // ── the API exists ───────────────────────────────────────────────
   const api = await page.evaluate(() => ({

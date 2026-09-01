@@ -441,6 +441,7 @@ const B_URL = new URLSearchParams(location.search).get("b")
   || (LOCAL ? "http://localhost:8788/" : PARTNER_URL);
 const B_ORIGIN = new URL(B_URL, location.href).origin;
 $("f").src = B_URL + (B_URL.includes("?") ? "&" : "?") + "a=" + encodeURIComponent(location.origin);
+window.B_ORIGIN = B_ORIGIN;   // read by tools/verify.js when checking a deployed pair
 
 const K = 250;
 const ok = o => ({ content: [{ type: "text", text: JSON.stringify(o) }] });

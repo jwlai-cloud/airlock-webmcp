@@ -77,6 +77,28 @@ cd site-b && python3 -m http.server 8788 &
 Open `http://localhost:8787/` in Chrome 149+ with `chrome://flags/#enable-webmcp-testing`
 enabled. To point at a different partner origin: `?b=https://partner.example/`.
 
+## Deploying the pair
+
+Airlock needs two genuinely different origins. Every repo under one GitHub account shares
+a single Pages origin, so the two halves cannot both live there — but a GitHub
+**organisation** gets its own Pages origin, which is the cheapest second origin going.
+
+```bash
+gh auth refresh -s admin:org,workflow        # once, if needed
+./tools/deploy-publisher.sh <your-org>       # publishes origin B, wires origin A to it
+git commit -am "Point origin A at the deployed publisher" && git push
+```
+
+Then check the deployed pair, not just localhost:
+
+```bash
+node tools/verify.js --base https://<you>.github.io/airlock-webmcp/site-a/
+```
+
+Any host works — Cloudflare Pages, Vercel, Netlify and Render are all fine. The only
+requirements are HTTPS and a *different* origin from origin A; set `PARTNER_URL` at the
+top of `site-a/index.html` to wherever origin B lands.
+
 ## Verify
 
 ```bash
