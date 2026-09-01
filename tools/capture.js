@@ -318,23 +318,19 @@ if (argv.includes("--list-voices")) {
   // ── 2. record, holding each caption for as long as its line takes ───────
   const ctx = await chromium.launchPersistentContext(profile(), {
     channel: "chrome", headless: true,
-    viewport: { width: 1920, height: 1080 },
+    viewport: { width: 1440, height: 810 },   // upscaled to 1080p at mux time
     args: ["--no-first-run", "--no-default-browser-check", "--disable-sync", "--hide-scrollbars"],
-    recordVideo: { dir: OUT, size: { width: 1920, height: 1080 } }
+    recordVideo: { dir: OUT, size: { width: 1440, height: 810 } }
   });
   const page = ctx.pages()[0] || await ctx.newPage();
   await page.goto(A + "?v=" + Date.now(), { waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
   await page.evaluate(() => {
-    // The app is designed at 13px for a desktop user sitting close to the screen. On a
-    // 1080p video watched in a small player that is unreadable, so zoom the root: the
-    // page still fills the frame, but every element is ~1.35x larger.
-    document.documentElement.style.zoom = "1.35";
     const bar = document.createElement("div");
     bar.id = "__cap";
     bar.style.cssText = `position:fixed;left:0;right:0;bottom:0;z-index:200;
-      background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:52px 44px 28px;
-      font:500 26px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
+      background:linear-gradient(transparent,rgba(9,17,15,.94) 45%);padding:44px 36px 24px;
+      font:500 21px/1.35 "IBM Plex Sans",system-ui,sans-serif;color:#F2F5F4;
       letter-spacing:-.012em;transition:opacity .3s ease;opacity:0;pointer-events:none`;
     document.body.appendChild(bar);
     window.__cap = t => { bar.textContent = t; bar.style.opacity = t ? "1" : "0"; };
@@ -365,7 +361,9 @@ if (argv.includes("--list-voices")) {
   // ── 3. mix the voice onto the picture at the beat times recorded ────────
   const mp4 = path.join(OUT, "airlock-demo.mp4");
   if (NO_VOICE) {
-    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, "-c:v", "libx264", "-preset", "slow",
+    sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw,
+      "-vf", "scale=1920:1080:flags=lanczos",
+      "-c:v", "libx264", "-preset", "slow",
       "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4]);
   } else {
     const inputs = [], filters = [];
@@ -377,6 +375,7 @@ if (argv.includes("--list-voices")) {
     sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, ...inputs,
       "-filter_complex", `${filters.join(";")};${mixed}amix=inputs=${beats.length}:normalize=0:dropout_transition=0[out]`,
       "-map", "0:v", "-map", "[out]",
+      "-vf", "scale=1920:1080:flags=lanczos",
       "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p",
       "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", mp4]);
   }
