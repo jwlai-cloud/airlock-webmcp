@@ -1,0 +1,100 @@
+<!doctype html><meta charset=utf-8><title>Airlock — Advertiser</title>
+<style>
+:root{--bg:#0d1117;--fg:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--acc:#58a6ff;--line:#30363d}
+*{box-sizing:border-box}
+body{margin:0;font:13px/1.5 ui-monospace,SFMono-Regular,monospace;background:var(--bg);color:var(--fg)}
+header{padding:14px 16px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:15px}.sub{color:var(--dim)}
+.wrap{display:grid;grid-template-columns:1fr 1fr;min-height:70vh}
+.pane{padding:14px 16px}.pane+.pane{border-left:1px solid var(--line)}
+.row{border-bottom:1px solid var(--line);padding:5px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.dim{color:var(--dim)}.acc{color:var(--acc)}
+iframe{width:100%;height:340px;border:1px solid var(--line);border-radius:6px;background:#010409}
+.badge{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:1px 9px;color:var(--dim)}
+</style>
+<header>
+  <h1>Airlock <span class=badge id=state>consent: not granted</span></h1>
+  <div class=sub>Two origins. One agent. No rows cross the boundary.</div>
+</header>
+<div class=wrap>
+  <div class=pane><b>Advertiser · origin A</b><div id=log></div></div>
+  <div class=pane><b>Publisher · origin B (embedded)</b><iframe id=f allow="tools" src=""></iframe></div>
+</div>
+<script>
+const log=(m,c="dim")=>document.getElementById("log").insertAdjacentHTML("beforeend",
+  `<div class="row ${c}">${m}</div>`);
+const B_URL=new URLSearchParams(location.search).get("b")||"http://localhost:8788/";
+const B_ORIGIN=new URL(B_URL,location.href).origin;
+document.getElementById("f").src=B_URL+(B_URL.includes("?")?"&":"?")+"a="+encodeURIComponent(location.origin);
+
+const K=250, receipts=[];
+const ok=o=>({content:[{type:"text",text:JSON.stringify(o)}]});
+const COHORTS=[{id:"1",name:"lapsed-buyers",size:9100},{id:"2",name:"high-ltv",size:2400}];
+
+function receipt(tool,detail,blocked){
+  receipts.push({seq:receipts.length+1,tool,detail,blocked:!!blocked});
+  log(`↔ ${tool} — ${detail}`, blocked?"bad":"acc");
+}
+
+async function callPartner(name,input){
+  const tools=await document.modelContext.getTools({fromOrigins:[B_ORIGIN]});
+  const tool=tools.find(t=>t.name===name);
+  if(!tool) throw new Error("partner tool not exposed: "+name);
+  const raw=await document.modelContext.executeTool(tool,JSON.stringify(input));
+  return JSON.parse(JSON.parse(raw).content[0].text);
+}
+
+if(!("modelContext" in document)){ log("document.modelContext absent — enable the Chrome flag","bad"); }
+else {
+  document.modelContext.registerTool({
+    name:"list_cohorts", description:"List the advertiser's own audience cohorts held on this origin.",
+    inputSchema:{type:"object",properties:{}}, annotations:{readOnlyHint:true},
+    execute:async()=>{ log("list_cohorts","dim"); return ok({cohorts:COHORTS}); }
+  });
+
+  document.modelContext.registerTool({
+    name:"request_partner_consent",
+    description:"Ask both operators to approve a stated purpose for querying across the boundary. Grants access to estimate_overlap.",
+    inputSchema:{type:"object",properties:{purpose:{type:"string"}},required:["purpose"]},
+    execute:async({purpose},client)=>{
+      const granted=await client.requestUserInteraction(async()=>
+        confirm(`Airlock consent\n\nPurpose: ${purpose}\n\nAllow aggregate-only queries across the boundary?\nNo row-level data will cross. k=${K}.`));
+      if(!granted){ receipt("request_partner_consent","declined by operator",true);
+        return ok({granted:false}); }
+      registerOverlap();
+      document.getElementById("state").textContent="consent: granted";
+      receipt("request_partner_consent","granted — estimate_overlap now registered");
+      return ok({granted:true,purpose});
+    }
+  });
+
+  document.modelContext.registerTool({
+    name:"get_receipts", description:"Every crossing of the airlock boundary, in order.",
+    inputSchema:{type:"object",properties:{}}, annotations:{readOnlyHint:true},
+    execute:async()=>ok({receipts})
+  });
+
+  // estimate_overlap deliberately does NOT exist until consent is granted.
+  function registerOverlap(){
+    document.modelContext.registerTool({
+      name:"estimate_overlap",
+      description:"Estimate audience overlap between an advertiser cohort and a publisher segment. Returns aggregates only; suppressed below k.",
+      inputSchema:{type:"object",properties:{cohortId:{type:"string"},segment:{type:"string"}},required:["cohortId","segment"]},
+      execute:async({cohortId,segment})=>{
+        const reach=await callPartner("publisher_segment_reach",{segment});
+        receipt("publisher_segment_reach",`reach=${reach.reach}`);
+        const ov=await callPartner("publisher_overlap_count",{segment,cohortId});
+        if(ov.suppressed){ receipt("publisher_overlap_count",ov.reason,true);
+          return ok({suppressed:true,reason:ov.reason}); }
+        receipt("publisher_overlap_count",`count=${ov.count}`);
+        const local=COHORTS.find(c=>c.id===cohortId);
+        return ok({cohort:local?.name,segment,publisherReach:reach.reach,
+                   overlap:ov.count,advertiserSize:local?.size,k:K,rows:"never transferred"});
+      }
+    });
+  }
+
+  log("2 tools registered; estimate_overlap withheld pending consent","ok");
+  document.modelContext.addEventListener?.("toolchange",()=>log("toolchange fired","dim"));
+}
+</script>

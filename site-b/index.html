@@ -1,0 +1,58 @@
+<!doctype html><meta charset=utf-8><title>Airlock — Publisher</title>
+<style>
+:root{--bg:#0d1117;--fg:#e6edf3;--dim:#8b949e;--ok:#3fb950;--bad:#f85149;--line:#30363d}
+body{margin:0;font:13px/1.5 ui-monospace,SFMono-Regular,monospace;background:var(--bg);color:var(--fg);padding:14px}
+h2{margin:0 0 2px;font-size:14px}.sub{color:var(--dim);margin-bottom:12px}
+.row{border-bottom:1px solid var(--line);padding:5px 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.dim{color:var(--dim)}
+</style>
+<h2>Publisher · origin B</h2>
+<div class=sub>Holds 1st-party audience rows. Exposes aggregates only.</div>
+<div id=log></div>
+<script>
+const log=(m,c="dim")=>document.getElementById("log").insertAdjacentHTML("beforeend",
+  `<div class="row ${c}">${m}</div>`);
+const A_ORIGIN=new URLSearchParams(location.search).get("a")||"http://localhost:8787";
+const K=250;
+
+// synthetic first-party rows — never leave this origin
+const ROWS=[...Array(4200)].map((_,i)=>({id:"p"+i,
+  segment:["cart-abandoners","sports-fans","commuters"][i%3], cohort:i%7}));
+const reachOf=s=>ROWS.filter(r=>r.segment===s).length*11;
+const overlapOf=(s,c)=>ROWS.filter(r=>r.segment===s&&r.cohort===Number(c)%7).length*11;
+
+const ok=o=>({content:[{type:"text",text:JSON.stringify(o)}]});
+
+if(!("modelContext" in document)){ log("document.modelContext absent — enable the Chrome flag","bad"); }
+else {
+  const tools=[
+    { name:"publisher_segment_reach",
+      description:"Aggregate reach for one audience segment. Aggregates only; never returns rows.",
+      inputSchema:{type:"object",properties:{segment:{type:"string"}},required:["segment"]},
+      annotations:{readOnlyHint:true},
+      execute:async({segment})=>{ const reach=reachOf(segment);
+        log(`reach(${segment}) → ${reach}`,"ok"); return ok({segment,reach,k:K}); } },
+
+    { name:"publisher_overlap_count",
+      description:"Count of publisher users in a segment that also match an advertiser cohort. Suppressed below the k-anonymity threshold.",
+      inputSchema:{type:"object",properties:{segment:{type:"string"},cohortId:{type:"string"}},required:["segment","cohortId"]},
+      annotations:{readOnlyHint:true},
+      execute:async({segment,cohortId})=>{ const count=overlapOf(segment,cohortId);
+        if(count<K){ log(`overlap(${segment},${cohortId}) → SUPPRESSED (${count} < k=${K})`,"bad");
+          return ok({suppressed:true,reason:`below k-anonymity threshold k=${K}`}); }
+        log(`overlap(${segment},${cohortId}) → ${count}`,"ok"); return ok({count,k:K}); } },
+
+    { name:"publisher_export_rows",
+      description:"Export user-level rows. This is never permitted and always refuses.",
+      inputSchema:{type:"object",properties:{segment:{type:"string"}},required:["segment"]},
+      execute:async({segment})=>{ log(`export_rows(${segment}) → REFUSED`,"bad");
+        return ok({refused:true,reason:"row-level data never crosses the airlock"}); } }
+  ];
+  for(const t of tools){
+    try{ document.modelContext.registerTool(t,{exposedTo:[A_ORIGIN]}); }
+    catch(e){ log("registerTool failed: "+e,"bad"); }
+  }
+  log(`${tools.length} tools registered, exposed to ${A_ORIGIN}`,"ok");
+  log(`${ROWS.length} rows held locally — none exposed`,"dim");
+}
+</script>
