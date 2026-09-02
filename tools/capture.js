@@ -164,7 +164,7 @@ const SCRIPT = [
   { cap: "Real model again — 2,178 shared, 13,057 reachable, 0 records moved.",
     vo: "The model is back, and now it can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.",
     go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
-                          await h.setModel(true);   // the payoff is delivered by the real model
+                          await h.setModel(true);
                           await h.ask("Now measure the overlap between high lifetime value and sports fans."); },
     extra: 0.4 },
 
