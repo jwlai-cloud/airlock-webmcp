@@ -1,0 +1,25 @@
+narration: 19 lines, 1:38 spoken (say Karen (Premium) at 202 wpm)
+projected runtime 2:19 (spoken 1:38 + ~41s of picture)
+   0.4s  A marketer asks an agent about a partner's audience.
+   4.2s  Real Gemini. getTools() to discover, executeTool() to call.
+   9.7s  estimate_overlap was never registered. Nothing to call.
+  15.2s  A permission check can be argued past. A missing tool cannot.
+  20.8s  Two companies. Neither may see the other's list.
+  28.5s  WebMCP: a page declares what it can do.
+  35.8s  exposedTo names one origin. A third gets no denial.
+  42.7s  getTools({fromOrigins}) · executeTool() · browser-mediated.
+  51.5s  One tool is a <form>. The browser writes its schema.
+  57.8s  Asking for the records is refused outright.
+  60.5s  Approval is a business decision — one on each side.
+  64.5s  It crosses to the publisher's console as a WebMCP tool call.
+  70.9s  registerTool({signal}) · toolchange fires · watch the list.
+  78.2s  2,178 shared. 13,057 more reachable. Zero records moved.
+  84.5s  untrustedContentHint — but a hint enforces nothing.
+  91.8s  Too few people matched. Withheld, not rounded.
+  95.6s  Three gates. None of them trusts the model.
+ 100.7s  Abort the signal → the tool is unregistered → gone.
+ 106.7s  A permission check can be argued past. A tool that does not exist cannot.
+github.com/jwlai-cloud/airlock-webmcp
+
+/Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
+runtime 1:52  (limit 3:00)

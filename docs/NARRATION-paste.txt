@@ -1,39 +1,49 @@
-A marketer asks an agent how their customers overlap with a partner's audience.
+How much do our customers overlap with a partner's?
 <break time="1.2s" />
-A real Gemini model, discovering this page's tools and calling them.
+Any agent can drive it. Paste a Gemini key and a real model takes over.
 <break time="1.2s" />
-But it cannot measure the overlap. That tool is not registered, so it was never in the list the model was given.
+Now a real model. getTools to see what the page offers, executeTool to invoke one.
 <break time="1.2s" />
-That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.
+But it cannot measure the overlap. That tool was never registered, so getTools never returned it.
 <break time="1.2s" />
-Two companies share customers and neither can say how many. Comparing the lists means showing them.
+That is the idea. A permission check can be argued past. A missing tool cannot.
 <break time="1.2s" />
-So today they hire a clean room. Six figures a year, and both upload their customer files to a third party.
+Two companies share customers and cannot say how many. Today that means a clean room, and both upload their files.
 <break time="1.2s" />
-Airlock is two ordinary web apps on two origins. Everything between them is WebMCP: ten tools, both halves of the API.
+Two ordinary web apps on two origins, and everything between them is WebMCP.
 <break time="1.2s" />
-exposedTo names one origin and no other. A third origin gets no denial — it never learns the tools exist.
+A page calls registerTool to declare what it can do, and the browser decides who sees it.
 <break time="1.2s" />
-One tool is a form with two attributes. The browser writes its schema, and submitting it runs the page's own handler.
+The publisher registers with exposedTo, naming one origin. A third gets no denial — it never learns they exist.
 <break time="1.2s" />
-Ask for the raw records and it refuses outright.
+Its console runs in a frame carrying allow equals tools — the Permissions Policy that lets either side reach the other.
 <break time="1.2s" />
-So it asks for approval. A person decides, on each side.
+The advertiser reaches them with getTools and fromOrigins, then executeTool — each running in the publisher's page, over records that never move.
 <break time="1.2s" />
-The request crosses to the publisher's own console, as a tool call. Their officer decides independently.
+A tool's description is not a comment. It is the whole basis on which a model decides to call it. Ours says the export tool always refuses, so the model reports that instead of retrying.
 <break time="1.2s" />
-Two approvals, and only now does registerTool run. Consent creates the capability.
+One tool is not JavaScript — a form with toolname, and the browser writes its schema.
 <break time="1.2s" />
-Now the model can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.
+Building it disproved three things the documentation says. requestUserInteraction does not exist in Chrome at all. fromOrigins is additive, not a filter. And executeTool needs a JSON string — an object throws.
 <break time="1.2s" />
-The publisher also returned a note. It is a prompt injection.
+Ask for the raw records and it refuses.
 <break time="1.2s" />
-It carries untrustedContentHint — but a hint enforces nothing, so we treat the text as data regardless.
+So it asks for approval. A person decides on each side.
+<break time="1.2s" />
+That crosses to their console as a WebMCP tool call. Their officer decides.
+<break time="1.2s" />
+Two approvals, and only now does registerTool run, bound to an AbortController.
+<break time="1.2s" />
+The model is back, and now it can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.
+<break time="1.2s" />
+It also returned a prompt injection. The tool carries untrustedContentHint — but a hint enforces nothing.
 <break time="1.2s" />
 A segment too thin to be safe is withheld, not rounded.
 <break time="1.2s" />
-Three gates, and not one depends on the model behaving well.
+All of it is checked by a Playwright suite that drives the same calls an agent makes — twenty-five of them, run against the live pair rather than a local copy.
 <break time="1.2s" />
-And it is revocable. Withdraw approval, the signal aborts, the tool is gone.
+Three gates. Not one depends on the model behaving well.
+<break time="1.2s" />
+And it is revocable. Abort the signal, the tool is unregistered. Gone, not disabled.
 <break time="1.2s" />
 Two companies answered a question about their shared customers. Neither saw the other's data. Airlock.

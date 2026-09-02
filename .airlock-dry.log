@@ -1,0 +1,59 @@
+narration: 19 lines, 1:48 spoken (say Karen (Premium) at 202 wpm)
+projected runtime 2:43 (spoken 1:48 + ~55s of picture)
+recording with a live model (key never rendered to the page)
+   0.4s  A marketer asks an agent about a partner's audience.
+   8.3s  Real Gemini. getTools() to discover, executeTool() to call.
+  14.9s  estimate_overlap was never registered. Nothing to call.
+  21.6s  A permission check can be argued past. A missing tool cannot.
+  28.0s  Two companies. Neither may see the other's list.
+  36.2s  WebMCP: a page declares what it can do.
+  44.2s  exposedTo names one origin. A third gets no denial.
+  52.2s  getTools({fromOrigins}) · executeTool() · browser-mediated.
+  61.6s  One tool is a <form>. The browser writes its schema.
+  68.9s  Asking for the records is refused outright.
+ 131.6s  Approval is a business decision — one on each side.
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#myes')[22m
+[2m    - locator resolved to <button id="myes" class="primary">Authorise</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    58 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not visible[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+    at Object.go (/Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/capture.js:128:35)
+    at /Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/capture.js:466:23 {
+  log: [
+    "  - waiting for locator('#myes')",
+    '    - locator resolved to <button id="myes" class="primary">Authorise</button>',
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '      - waiting 100ms',
+    '    58 × waiting for element to be visible, enabled and stable',
+    '       - element is not visible',
+    '     - retrying click action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3
