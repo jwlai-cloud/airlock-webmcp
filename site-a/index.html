@@ -880,10 +880,14 @@ $("gclear").onclick = () => {
 // a tool with no parameters must omit `parameters` entirely or the API rejects it.
 function declare(tool) {
   const d = { name: tool.name, description: tool.description };
-  const props = tool.inputSchema?.properties;
+  // A declarative tool's inputSchema comes back as a JSON *string* where an
+  // imperative tool's is an object, so parse defensively or the browser-synthesised
+  // form tool reaches the model with no parameters at all.
+  let schema = tool.inputSchema;
+  if (typeof schema === "string") { try { schema = JSON.parse(schema); } catch { schema = null; } }
+  const props = schema?.properties;
   if (props && Object.keys(props).length) {
-    d.parameters = { type: "object", properties: props,
-                     required: tool.inputSchema.required || [] };
+    d.parameters = { type: "object", properties: props, required: schema.required || [] };
   }
   return d;
 }

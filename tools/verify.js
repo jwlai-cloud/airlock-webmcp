@@ -79,6 +79,20 @@ const check = (name, pass, detail = "") => {
   });
   check("declarative form tool is published by the browser", !!decl,
         decl ? decl.props.join(", ") : "check_segment_reach absent");
+
+  // the BYO-key path hands the model whatever declare() produces; a declarative
+  // tool's schema arrives as a JSON string, so this is where that bites
+  const decls = await page.evaluate(async () => {
+    const ts = await document.modelContext.getTools();
+    return ts.map(t => ({ name: t.name, params: Object.keys(declare(t).parameters?.properties || {}) }));
+  });
+  const form = decls.find(d => d.name === "check_segment_reach");
+  const consentDecl = decls.find(d => d.name === "request_partner_consent");
+  check("declare() keeps parameters for the declarative tool",
+        !!form && form.params.includes("segment"), form ? form.params.join(",") : "absent");
+  check("declare() keeps parameters for an imperative tool",
+        !!consentDecl && consentDecl.params.includes("purpose"),
+        consentDecl ? consentDecl.params.join(",") : "absent");
   check("browser synthesised its schema from the markup",
         !!decl && decl.props.includes("segment"));
 
