@@ -1,7 +1,28 @@
-narration: 20 lines, 2:20 spoken (your own recording)
-projected runtime 2:58 (spoken 2:20 + ~39s of picture)
+narration: 19 lines, 2:17 spoken (your own recording)
+projected runtime 2:55 (spoken 2:17 + ~38s of picture)
 
-*** 2:58 is too close to the 3:00 ceiling. ***
+*** 2:55 is too close to the 3:00 ceiling. ***
 Trim the narration, or lower the `extra` holds in tools/capture.js.
-Pass --force to record anyway.
+   0.4s  A marketer asks an agent about a partner's audience.
+   5.0s  It can't. That tool is not registered — getTools() never returns it.
+  12.4s  A permission check can be argued past. A missing tool cannot.
+  22.5s  Two companies. One question neither can answer.
+  31.8s  Today: a clean-room vendor, six figures, both files uploaded.
+  41.9s  Airlock is two ordinary web apps, on two different origins.
+  50.8s  WebMCP: each app declares what it can do.
+  62.0s  Asking for the records directly is refused outright.
+  86.1s  Approval is a business decision. A person makes it on each side.
+  90.6s  The request crosses to the publisher's console as a tool call.
+  97.8s  Two approvals → registerTool(). Watch the tool list.
+ 103.5s  2,178 shared. 13,057 more reachable. Zero records moved.
+ 112.6s  The publisher also returned free text — and it is an attack.
+ 118.3s  Quarantined as text. Never followed as an instruction.
+ 126.4s  Too few people matched. The number is withheld, not rounded.
+ 132.1s  exposedTo: four capabilities to this origin, nothing else.
+ 141.0s  All of it: registerTool · exposedTo · getTools · executeTool.
+ 155.1s  Withdraw approval → the signal aborts → the tool is gone.
+ 161.6s  A permission check can be argued past. A tool that does not exist cannot.
+github.com/jwlai-cloud/airlock-webmcp
 
+/Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
+runtime 2:50  (limit 3:00)

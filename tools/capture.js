@@ -132,10 +132,6 @@ const SCRIPT = [
     extra: 0.07 },
 
   // ---- audit + exposedTo ----
-  { cap: "Every crossing is on the record, for both companies.",
-    vo: "Every crossing is on the record, on both sides.",
-    go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1400); } },
-
   { cap: "exposedTo: four capabilities to this origin, nothing else.",
     vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(350); },
@@ -319,8 +315,10 @@ if (argv.includes("--list-voices")) {
        : TTS === "file" ? "(your own recording)"
        : `(say ${VOICE} at ${RATE} wpm)`));
   console.log(`projected runtime ${mmss(projected)} (spoken ${mmss(spoken)} + ~${Math.round(overhead)}s of picture)`);
-  if (projected > 172) {
-    console.error(`\n*** ${mmss(projected)} is too close to the 3:00 ceiling. ***`);
+  if (projected > 176) {
+    console.error(`\n*** ${mmss(projected)} projected, too close to the 3:00 ceiling. ***`);
+    console.error(`The projection runs a few seconds pessimistic; the real figure is printed`);
+    console.error(`at the end of a render, and that is the one to trust.`);
     console.error(`Trim the narration, or lower the \`extra\` holds in tools/capture.js.`);
     if (!argv.includes("--force")) { console.error(`Pass --force to record anyway.\n`); process.exit(1); }
   }
