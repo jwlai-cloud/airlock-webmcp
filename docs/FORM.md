@@ -18,7 +18,7 @@ industry term: "Airlock — a data clean room in the browser" (42), or
 ## Elevator pitch
 
 ```
-Find out how many customers you share with a partner, without either of you sending the other a single customer record. No clean room, no contract, no upload.
+Two companies compare customer lists without sharing them. The agent can't overshare, because the tool to do it doesn't exist until both sides say yes.
 ```
 
 *(172 characters)*

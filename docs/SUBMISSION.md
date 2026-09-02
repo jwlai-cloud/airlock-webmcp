@@ -12,8 +12,7 @@ Paste-ready. Numbers here must match `docs/VIDEO-SCRIPT.md` and the README exact
 
 ## Elevator pitch (200 char limit)
 
-Find out how many customers you share with a partner, without either of you sending the
-other a single customer record. No clean room, no contract, no upload.
+Two companies compare customer lists without sharing them. The agent can't overshare, because the tool to do it doesn't exist until both sides say yes.
 
 ---
 
