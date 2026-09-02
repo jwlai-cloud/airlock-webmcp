@@ -44,43 +44,73 @@ https://github.com/jwlai-cloud/airlock-webmcp
 
 ## Testing instructions
 
-**This field matters more than usual — without the flag a judge sees "WebMCP unavailable" and nothing works.**
+**This field matters more than usual — without the flag a judge sees "WebMCP unavailable"
+and nothing works.** It is ordered by friction: everything essential needs only the flag.
 
 ```
-No account, no login, no API key.
+No account, no login, no API key. One setup step, then about a minute.
 
-1. Chrome 149 or later. Open chrome://flags/#enable-webmcp-testing, set it to
-   Enabled, and relaunch Chrome.
-2. Open https://jwlai-cloud.github.io/airlock-webmcp/site-a/
-   The right-hand panel embeds the partner company's console, which runs on a
-   separate origin (rawcdn.githack.com). Both sides are live.
-3. Diagnostics in the left nav shows what the browser actually implements and
-   which tools are currently registered.
+SETUP — required
+1. Chrome 149 or later.
+2. Open chrome://flags/#enable-webmcp-testing, set Enabled, relaunch Chrome.
+3. Open https://jwlai-cloud.github.io/airlock-webmcp/site-a/
+   (If you skip step 2 the page says so and tells you what to do.)
 
-Drive it three ways, all reaching the same tools:
+WHAT YOU ARE LOOKING AT
+Two companies, two separate origins. The left is the advertiser's workspace on
+github.io. The panel on the right is the publisher's own console, a separate
+application on a separate origin (rawcdn.githack.com) — there is a link in that
+panel to open it on its own if you want to confirm that. It is embedded here
+because WebMCP only exposes cross-origin tools to documents in the same frame
+tree; without the allow="tools" frame, neither side could reach the other at all.
 
-  • A real agent — install Google's Model Context Tool Inspector extension:
-    https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd
-    Its agent chat runs gemini-3-flash-preview and discovers these tools by
-    itself. Ask in your own words: "How much does our high lifetime value
-    audience overlap with Meridian's sports fans?" Before approval it reports no
-    such tool exists, because none does. Ask it to export the partner's records
-    and it is refused.
-  • Your own Gemini key, pasted in Agent settings — stays in your browser.
-  • The built-in panel — a deterministic router, no model, labelled as such.
+THE 60-SECOND PATH — no extra setup, uses the panel on the right
+1. Click "How much does high lifetime value overlap with sports fans?"
+   It reports that no such tool exists. Not a denial — estimate_overlap is not
+   registered, so it is absent from getTools() entirely.
+2. Open Diagnostics in the left nav. Confirm estimate_overlap says "not
+   registered" while the other five say "registered". This is the whole claim,
+   and it is visible without any model involved.
+3. Click "Export Meridian's customer records". Refused, unconditionally.
+4. Click "Request approval to measure incremental reach". An operator approves
+   on each side — the second approval happens inside the publisher's own
+   console, because neither company can approve for the other.
+5. Re-open Diagnostics. estimate_overlap has appeared.
+6. Ask the overlap question again: 2,178 shared, 13,057 incremental reach. Two
+   aggregate counts crossed. Zero customer records moved. The publisher's note
+   comes back quarantined — it contains a deliberate prompt injection.
+7. Click "Check luxury auto intenders". Withheld: fewer than 250 people matched.
+8. Click "Withdraw approval", then re-open Diagnostics. The tool is gone. Not
+   disabled — unregistered.
 
-Worth trying: ask for the overlap BEFORE approving anything (the tool is not in
-the agent's tool list at all), then "Request approval to measure incremental
-reach" — an operator approves on each side, and estimate_overlap appears in
-Diagnostics. "Check luxury auto intenders" is withheld under the k=250 floor.
+That panel is a deterministic router with no model, and the UI says so. It calls
+the identical getTools() and executeTool() a real agent would.
 
-Repo: npm install && npm run verify runs 21 checks against real Chrome,
-including against the deployed pair with --base.
+OPTIONAL — drive it with a real agent
+Nothing here is scripted for a particular client, so any WebMCP agent works.
 
-All data is synthetic.
+  (a) Google's Model Context Tool Inspector extension, whose agent chat runs
+      gemini-3-flash-preview:
+      https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd
+      Ask in your own words: "How much does our high lifetime value audience
+      overlap with Meridian's sports fans?" Before approval it will tell you no
+      such tool exists, because none does.
+
+  (b) Your own Gemini API key, under "Agent settings". It is kept in your
+      browser's localStorage and sent only to Google. Airlock has no backend and
+      ships no key, so it never reaches us. Entirely optional — the steps above
+      prove the same thing without it.
+
+VERIFY IT YOURSELF
+  git clone https://github.com/jwlai-cloud/airlock-webmcp && npm install
+  npm run verify -- --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
+  npm run verify:ui -- --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
+23 checks of the WebMCP surface and 12 of the keyless UI path, both against the
+deployed pair rather than a local copy.
+
+All data is synthetic. k-anonymity at k=250, which is not differential privacy —
+said plainly in the README rather than overclaimed.
 ```
-
----
 
 ## Video demo link
 
