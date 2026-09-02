@@ -7,8 +7,13 @@ Fill top to bottom. Every field below is final text; nothing needs editing.
 ## Project name
 
 ```
-Airlock
+Airlock — audience overlap without sharing customer data
 ```
+
+*(56 characters. Says what it does in plain words — a judge who has never heard
+of a data clean room still knows what this is. Alternatives, if you prefer the
+industry term: "Airlock — a data clean room in the browser" (42), or
+"Airlock — cross-origin data clean room" (38).)*
 
 ## Elevator pitch
 
