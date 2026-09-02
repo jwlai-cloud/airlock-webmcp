@@ -280,6 +280,12 @@ Two observations from testing it:
   needs no approval, and keeps everything gated or untrusted on the imperative side.
 - `:tool-form-active` is a real pseudo-class and matches while the tool is running —
   useful for showing the user that an agent is driving their form.
+- **The synthesised schema is richer than a function-calling API accepts.** A `<select>`
+  arrives as `anyOf` of `const` values *and* an equivalent `enum`. Gemini rejects the
+  whole request with `Unknown name "const" at tools[0].function_declarations…`. Anything
+  handing these schemas to a model has to prune them down to the subset that API
+  understands — `type`, `description`, `enum`, `items`, `properties`, `required`. The
+  enum survives the prune, so nothing is actually lost.
 
 ## 6. Things worth knowing that Airlock does not use
 

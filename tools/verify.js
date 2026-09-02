@@ -90,6 +90,15 @@ const check = (name, pass, detail = "") => {
   const consentDecl = decls.find(d => d.name === "request_partner_consent");
   check("declare() keeps parameters for the declarative tool",
         !!form && form.params.includes("segment"), form ? form.params.join(",") : "absent");
+  // the browser's schema for a <select> carries anyOf/const, which Gemini rejects outright
+  const clean = await page.evaluate(async () => {
+    const t = (await document.modelContext.getTools()).find(x => x.name === "check_segment_reach");
+    const j = JSON.stringify(declare(t));
+    return { hasBanned: /"(anyOf|const|title)"/.test(j), enumOk: /"enum"/.test(j) };
+  });
+  check("declare() strips schema keywords a model API rejects", !clean.hasBanned);
+  check("declare() keeps the enum a <select> becomes", clean.enumOk);
+
   check("declare() keeps parameters for an imperative tool",
         !!consentDecl && consentDecl.params.includes("purpose"),
         consentDecl ? consentDecl.params.join(",") : "absent");

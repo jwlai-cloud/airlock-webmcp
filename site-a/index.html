@@ -940,6 +940,29 @@ $("gclear").onclick = () => {
 
 // JSON Schema -> Gemini function declaration. Our schemas are plain objects of strings;
 // a tool with no parameters must omit `parameters` entirely or the API rejects it.
+/* The browser synthesises a richer JSON Schema than function-calling APIs accept. A
+   <select> comes back with anyOf/const *and* an equivalent enum, and Gemini rejects the
+   whole request with `Unknown name "const"`. Keep the keywords the function-declaration
+   subset understands and drop the rest; the enum survives, so nothing is lost. */
+const SCHEMA_KEYS = ["type", "description", "enum", "format", "items", "properties", "required"];
+function pruneSchema(node) {
+  if (!node || typeof node !== "object") return node;
+  if (Array.isArray(node)) return node.map(pruneSchema);
+  const out = {};
+  for (const k of SCHEMA_KEYS) {
+    if (!(k in node)) continue;
+    out[k] = (k === "properties")
+      ? Object.fromEntries(Object.entries(node[k]).map(([n, v]) => [n, pruneSchema(v)]))
+      : pruneSchema(node[k]);
+  }
+  // a bare anyOf of consts is how a <select> arrives; recover it as an enum
+  if (!out.enum && Array.isArray(node.anyOf)) {
+    const vals = node.anyOf.map(o => o?.const).filter(v => v !== undefined);
+    if (vals.length) { out.enum = vals; out.type = out.type || "string"; }
+  }
+  return out;
+}
+
 function declare(tool) {
   const d = { name: tool.name, description: tool.description };
   // A declarative tool's inputSchema comes back as a JSON *string* where an
@@ -949,7 +972,8 @@ function declare(tool) {
   if (typeof schema === "string") { try { schema = JSON.parse(schema); } catch { schema = null; } }
   const props = schema?.properties;
   if (props && Object.keys(props).length) {
-    d.parameters = { type: "object", properties: props, required: schema.required || [] };
+    d.parameters = pruneSchema({ type: "object", properties: props,
+                                 required: schema.required || [] });
   }
   return d;
 }
