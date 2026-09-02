@@ -4,7 +4,7 @@ Paste-ready. Numbers here must match `docs/VIDEO-SCRIPT.md` and the README exact
 
 - **Live demo:** https://jwlai-cloud.github.io/airlock-webmcp/site-a/
 - **Repository:** https://github.com/jwlai-cloud/airlock-webmcp (MIT)
-- **Video:** *(YouTube URL — public, 2:29 — recorded against the deployed pair)*
+- **Video:** *(YouTube URL — public, 2:45 — recorded against the deployed pair)*
 - **Requires:** Chrome 149+ with `chrome://flags/#enable-webmcp-testing`. No account, no
   API key, no login.
 
@@ -289,4 +289,4 @@ Every number below must be identical in the video, the README and this document.
 | Records exchanged | 0 |
 | Tools | 10 (6 on A, 4 on B) |
 | Automated checks | 21 |
-| Video runtime | 2:29 |
+| Video runtime | 2:45 |

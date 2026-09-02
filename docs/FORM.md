@@ -118,7 +118,7 @@ said plainly in the README rather than overclaimed.
 (paste the YouTube URL — must be PUBLIC, not unlisted)
 ```
 
-Local file: `.airlock-video/airlock-demo.mp4` — 2:29, 1920×1080, H.264 + AAC.
+Local file: `.airlock-video/airlock-demo.mp4` — 2:45, 1920×1080, H.264 + AAC.
 
 ---
 

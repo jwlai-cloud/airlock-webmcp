@@ -18,6 +18,7 @@ const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1
 // injected straight into localStorage before the page script runs, and never typed
 // into the UI -- so it cannot appear on camera even for a frame.
 const WITH_KEY = argv.includes("--with-key");
+const TEMPO = parseFloat(arg("--tempo", "1"));   // atempo preserves pitch; 1.05-1.10 is inaudible
 function readEnvKey() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
   const envFile = path.resolve(__dirname, "../.env");
@@ -72,11 +73,13 @@ const SCRIPT = [
   // ---- COLD OPEN: a real model, calling real tools, hitting the boundary ----
   { cap: "A marketer asks an agent about a partner's audience.",
     vo: "How much do our customers overlap with a partner's?",
-    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(300); } },
+    go: async (p, h) => { await p.click('nav a[data-view="analysis"]');
+                          await p.waitForTimeout(200);
+                          if (WITH_KEY) h.startPasteKey(); } },
 
   { cap: "Bring your own model — the key stays in your browser.",
     vo: "Any agent can drive it. Paste a Gemini key and a real model takes over.",
-    go: async (p, h) => { if (WITH_KEY) await h.pasteKeyOnCamera(); }, extra: 0.3 },
+    go: async (p, h) => { await h.awaitPaste(); }, extra: 0.2 },
 
   { cap: "Real Gemini. getTools() to discover, executeTool() to call.",
     vo: "Now a real model. getTools to see what the page offers, executeTool to invoke one.",
@@ -335,6 +338,12 @@ if (argv.includes("--list-voices")) {
     if (NO_VOICE) return { len: 2.8 };
     const wav = path.join(VO, String(i).padStart(2, "0") + ".wav");
     if (TTS === "file") {
+      if (TEMPO !== 1) {
+        const fast = wav.replace(".wav", ".fast.wav");
+        sh("ffmpeg", ["-y", "-loglevel", "error", "-i", wav,
+                      "-filter:a", `atempo=${TEMPO}`, "-ar", "44100", "-ac", "2", fast]);
+        return { file: fast, len: dur(fast) };
+      }
       return { file: wav, len: dur(wav) };          // your own voice, already recorded
     }
     if (TTS === "eleven") {
@@ -355,7 +364,7 @@ if (argv.includes("--list-voices")) {
   // Roughly what the picture adds on top of speech: per-beat pad, the `extra` holds, the
   // UI actions, and the head and tail. Checked before recording so a long read is caught
   // in a second rather than after a three-minute render.
-  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + (A.startsWith('http://localhost') ? 17 : 34) + (WITH_KEY ? 14 : 0);   // deployed pairs, and live models, pay real latency
+  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + (A.startsWith('http://localhost') ? 10 : 16) + (WITH_KEY ? 6 : 0);   // deployed pairs, and live models, pay real latency
   const projected = spoken + overhead;
   const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
   console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
@@ -485,18 +494,24 @@ if (argv.includes("--list-voices")) {
   // the scripted approval sequence a model cannot be relied on to follow.
   // Paste the key through the dialog a judge would use, on camera. The field is a
   // password input, so the key shows as dots and never appears in a frame.
-  async function pasteKeyOnCamera() {
+  let pasting = null;
+  function startPasteKey() {
     const key = readEnvKey();
     if (!key) throw new Error("--with-key needs GEMINI_API_KEY in the environment or .env");
-    await page.click("#usekey");
-    await page.waitForSelector("#kveil", { state: "visible" });
-    await page.waitForTimeout(500);
-    await page.type("#kkey", key.slice(0, 18), { delay: 28 });   // typed, then filled
-    await page.fill("#kkey", key);
-    await page.waitForTimeout(350);
-    await page.click("#kyes");
-    await page.waitForTimeout(400);
+    // deliberately not awaited: it animates while the previous beat's narration plays,
+    // instead of running in silence before its own
+    pasting = (async () => {
+      await page.click("#usekey");
+      await page.waitForSelector("#kveil", { state: "visible" });
+      await page.waitForTimeout(300);
+      await page.type("#kkey", key.slice(0, 14), { delay: 22 });   // typed, then filled
+      await page.fill("#kkey", key);
+      await page.waitForTimeout(250);
+      await page.click("#kyes");
+      await page.waitForTimeout(250);
+    })();
   }
+  const awaitPaste = async () => { if (pasting) { await pasting; pasting = null; } };
 
   async function setModel(on) {
     await page.evaluate(([enable, k]) => {
@@ -514,7 +529,7 @@ if (argv.includes("--list-voices")) {
   };
 
   const helpers = { partner: page.frameLocator("#f"), chip, ask, dismissModal,
-                    showDiagram, hideDiagram, setModel, pasteKeyOnCamera };
+                    showDiagram, hideDiagram, setModel, startPasteKey, awaitPaste };
   const t0 = Date.now();
   const beats = [];
   for (let i = 0; i < SCRIPT.length; i++) {

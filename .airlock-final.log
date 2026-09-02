@@ -1,9 +1,37 @@
-narration: 25 lines, 2:37 spoken (your own recording)
-projected runtime 3:35 (spoken 2:37 + ~58s of picture)
+narration: 25 lines, 2:25 spoken (your own recording)
+projected runtime 2:57 (spoken 2:25 + ~32s of picture)
 
-*** 3:35 projected, too close to the 3:00 ceiling. ***
+*** 2:57 projected, too close to the 3:00 ceiling. ***
 The projection runs a few seconds pessimistic; the real figure is printed
 at the end of a render, and that is the one to trust.
 Trim the narration, or lower the `extra` holds in tools/capture.js.
-Pass --force to record anyway.
+recording with a live model (key never rendered to the page)
+   0.3s  A marketer asks an agent about a partner's audience.
+   3.1s  Bring your own model — the key stays in your browser.
+   9.1s  Real Gemini. getTools() to discover, executeTool() to call.
+  15.0s  estimate_overlap was never registered. Nothing to call.
+  21.0s  A permission check can be argued past. A missing tool cannot.
+  26.9s  Two companies. Neither may see the other's list.
+  33.9s  Two origins. Aggregates cross; records never do.
+  39.3s  WebMCP: a page declares what it can do.
+  44.5s  exposedTo names one origin. A third gets no denial.
+  53.0s  allow="tools" — the frame is how the crossing is permitted at all.
+  60.0s  getTools({fromOrigins}) · executeTool() · browser-mediated.
+  68.9s  The description is prompt, not documentation.
+  80.4s  One tool is a <form>. The browser writes its schema.
+  85.9s  Three published facts about this API were wrong.
+ 100.8s  Asking for the records is refused outright.
+ 103.6s  Approval is a business decision — one on each side.
+ 108.2s  It crosses to the publisher's console as a WebMCP tool call.
+ 114.2s  registerTool({signal}) · toolchange fires · watch the list.
+ 119.9s  Real model again — 2,178 shared, 13,057 reachable, 0 records moved.
+ 128.2s  untrustedContentHint — but a hint enforces nothing.
+ 135.5s  Too few people matched. Withheld, not rounded.
+ 139.0s  25 automated checks, against the deployed pair.
+ 148.0s  Three gates. None of them trusts the model.
+ 153.5s  Abort the signal → the tool is unregistered → gone.
+ 159.6s  A permission check can be argued past. A tool that does not exist cannot.
+github.com/jwlai-cloud/airlock-webmcp
 
+/Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
+runtime 2:45  (limit 3:00)
