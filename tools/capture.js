@@ -335,6 +335,12 @@ if (argv.includes("--list-voices")) {
   const page = ctx.pages()[0] || await ctx.newPage();
   await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(),
                   { waitUntil: "networkidle" });
+  // The profile is shared with the test harnesses, and verify-llm.js leaves a Gemini key
+  // in localStorage. A recording must be deterministic, so drive the no-model router:
+  // with a key present the page would route through a live model and every beat's timing
+  // would depend on someone else's server.
+  await page.evaluate(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
+  await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(1200);
   await page.evaluate(() => {
     const bar = document.createElement("div");

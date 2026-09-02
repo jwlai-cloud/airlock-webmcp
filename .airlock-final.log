@@ -1,3 +1,25 @@
 narration: 20 lines, 2:20 spoken (your own recording)
 projected runtime 2:43 (spoken 2:20 + ~23s of picture)
    0.7s  A marketer asks an agent about a partner's audience.
+  27.1s  It can't. That tool is not registered — getTools() never returns it.
+  34.6s  A permission check can be argued past. A missing tool cannot.
+  44.8s  Two companies. One question neither can answer.
+  54.2s  Today: a clean-room vendor, six figures, both files uploaded.
+  64.5s  Airlock is two ordinary web apps, on two different origins.
+  73.8s  WebMCP: each app declares what it can do.
+ 105.6s  Asking for the records directly is refused outright.
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.waitForSelector: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#veil.on') to be visible[22m
+
+    at Object.go (/Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/capture.js:100:35)
+    at async /Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/capture.js:397:15 {
+  log: [ "  - waiting for locator('#veil.on') to be visible" ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3

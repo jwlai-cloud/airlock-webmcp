@@ -33,6 +33,9 @@ const check = (name, pass, detail = "") => {
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
   await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(), { waitUntil: "networkidle" });
+  // this suite exists to test the no-model path, so make sure no key is left over
+  await page.evaluate(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
+  await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
 
   // a judge who has pasted no key must land in the no-model fallback
