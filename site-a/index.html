@@ -417,7 +417,7 @@ tr:last-child td{border-bottom:0}
                 <label class=f style="min-width:280px">Gemini API key
                   <input type=password id=gkey placeholder="AIza…" autocomplete=off></label>
                 <label class=f style="max-width:220px">Model
-                  <input type=text id=gmodel placeholder="gemini-flash-latest"></label>
+                  <input type=text id=gmodel placeholder="gemini-3.6-flash"></label>
               </div>
               <div class=row>
                 <button class=primary id=gsave>Save key</button>
@@ -857,8 +857,8 @@ async function route(q) {
    estimate_overlap is not in that list, so the model is never told it exists. */
 const KEY_STORE = "airlock.gemini.key", MODEL_STORE = "airlock.gemini.model";
 const readKey = () => { try { return localStorage.getItem(KEY_STORE) || ""; } catch { return ""; } };
-const readModel = () => { try { return localStorage.getItem(MODEL_STORE) || "gemini-flash-latest"; }
-                          catch { return "gemini-flash-latest"; } };
+const readModel = () => { try { return localStorage.getItem(MODEL_STORE) || "gemini-3.6-flash"; }
+                          catch { return "gemini-3.6-flash"; } };
 
 function syncKeyUI() {
   const has = !!readKey();

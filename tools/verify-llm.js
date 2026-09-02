@@ -14,7 +14,7 @@ const fs = require("fs");
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
 const A = arg("--base", "http://localhost:8787/");
-const MODEL = arg("--model", "gemini-flash-latest");
+const MODEL = arg("--model", "gemini-3.6-flash");
 const KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
 if (!KEY) {

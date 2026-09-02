@@ -21,8 +21,8 @@ echo "ok  no HTML sinks"
 if git ls-files --error-unmatch .env >/dev/null 2>&1; then
   echo "FAIL: .env is tracked by git"; exit 1
 fi
-if grep -rlE 'AIza[0-9A-Za-z_-]{30,}' --exclude-dir=.git --exclude-dir=node_modules \
-     --exclude-dir=.airlock-video --exclude-dir=.firecrawl . 2>/dev/null | grep -q .; then
-  echo "FAIL: something that looks like an API key is in the tree"; exit 1
+# Only tracked files matter: .env holds a real key on purpose and is gitignored.
+if git ls-files -z | xargs -0 grep -lE '(AIza[0-9A-Za-z_-]{30,}|AQ\.[A-Za-z0-9_-]{30,})' 2>/dev/null | grep -q .; then
+  echo "FAIL: something that looks like an API key is in a tracked file"; exit 1
 fi
 echo "ok  no credentials in the tree"
