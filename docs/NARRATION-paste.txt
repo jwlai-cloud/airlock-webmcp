@@ -6,29 +6,23 @@ But it cannot measure the overlap. That tool is not registered, so it was never 
 <break time="1.2s" />
 That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.
 <break time="1.2s" />
-Two companies share customers and neither can say how many. Comparing the lists means showing them.
+Two companies share customers and cannot say how many. Today that means a clean room: six figures a year, and both upload their customer files to a third party.
 <break time="1.2s" />
-So today they hire a clean room. Six figures a year, and both upload their customer files to a third party.
+Airlock is two ordinary web apps on two origins, and everything between them is WebMCP. Ten tools, both halves of the API.
 <break time="1.2s" />
-Airlock is two ordinary web apps on two origins. Everything between them is WebMCP: ten tools, both halves of the API.
+exposedTo names one origin and no other — a third gets no denial, it never learns the tools exist. And one tool is just a form: the browser writes its schema.
 <break time="1.2s" />
-exposedTo names one origin and no other. A third origin gets no denial — it never learns the tools exist.
+Ask for the raw records and it refuses.
 <break time="1.2s" />
-One tool is a form with two attributes. The browser writes its schema, and submitting it runs the page's own handler.
+So it asks for approval, and a person decides on each side.
 <break time="1.2s" />
-Ask for the raw records and it refuses outright.
-<break time="1.2s" />
-So it asks for approval. A person decides, on each side.
-<break time="1.2s" />
-The request crosses to the publisher's own console, as a tool call. Their officer decides independently.
+The request crosses to the publisher's own console as a tool call. Their officer decides independently.
 <break time="1.2s" />
 Two approvals, and only now does registerTool run. Consent creates the capability.
 <break time="1.2s" />
 Now the model can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.
 <break time="1.2s" />
-The publisher also returned a note. It is a prompt injection.
-<break time="1.2s" />
-It carries untrustedContentHint — but a hint enforces nothing, so we treat the text as data regardless.
+The publisher also returned a note, and it is a prompt injection. It carries untrustedContentHint — but a hint enforces nothing, so we treat it as data regardless.
 <break time="1.2s" />
 A segment too thin to be safe is withheld, not rounded.
 <break time="1.2s" />
