@@ -12,6 +12,19 @@ const fs = require("fs");
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1]; };
+
+// --with-key records the demo with a real model driving the tools instead of the
+// deterministic router. The key is read from the environment or a gitignored .env,
+// injected straight into localStorage before the page script runs, and never typed
+// into the UI -- so it cannot appear on camera even for a frame.
+const WITH_KEY = argv.includes("--with-key");
+function readEnvKey() {
+  if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
+  const envFile = path.resolve(__dirname, "../.env");
+  if (!fs.existsSync(envFile)) return "";
+  const m = fs.readFileSync(envFile, "utf8").match(/^\s*GEMINI_API_KEY\s*=\s*(.+)$/m);
+  return m ? m[1].trim().replace(/^["']|["']$/g, "") : "";
+}
 const VOICE = arg("--voice", "Karen (Premium)");
 const RATE = arg("--rate", "202");        // words per minute; macOS default is ~175
 const NO_VOICE = argv.includes("--no-voice");
@@ -305,7 +318,7 @@ if (argv.includes("--list-voices")) {
   // Roughly what the picture adds on top of speech: per-beat pad, the `extra` holds, the
   // UI actions, and the head and tail. Checked before recording so a long read is caught
   // in a second rather than after a three-minute render.
-  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + (A.startsWith('http://localhost') ? 17 : 34);   // deployed pairs pay real latency
+  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + (A.startsWith('http://localhost') ? 17 : 34) + (WITH_KEY ? 14 : 0);   // deployed pairs, and live models, pay real latency
   const projected = spoken + overhead;
   const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
   console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
@@ -332,10 +345,22 @@ if (argv.includes("--list-voices")) {
   });
   const page = ctx.pages()[0] || await ctx.newPage();
   // The profile is shared with the test harnesses and verify-llm.js leaves a Gemini key
-  // in localStorage. A recording has to be deterministic, so clear it before the page
-  // script runs: with a key present every beat's timing would depend on someone else's
-  // server. Doing it in an init script avoids paying for a reload.
-  await page.addInitScript(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
+  // in localStorage. By default clear it, so a recording is deterministic rather than
+  // dependent on someone else's server. With --with-key, set it instead -- written
+  // directly to storage before the page script runs, so it never reaches the DOM.
+  if (WITH_KEY) {
+    const key = readEnvKey();
+    if (!key) {
+      console.error("--with-key needs GEMINI_API_KEY in the environment or in .env");
+      process.exit(1);
+    }
+    await page.addInitScript(k => {
+      try { localStorage.setItem("airlock.gemini.key", k); } catch {}
+    }, key);
+    console.log("recording with a live model (key never rendered to the page)");
+  } else {
+    await page.addInitScript(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
+  }
   await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(),
                   { waitUntil: "networkidle" });
   await page.waitForTimeout(350);
@@ -384,10 +409,11 @@ if (argv.includes("--list-voices")) {
   // round trip, so a fixed delay after a click is a race: the next beat can fire while
   // the previous answer is still in flight. Wait for the assistant's reply instead.
   async function chip(label, settle = 150) {
+    const budget = WITH_KEY ? 60000 : 20000;   // a model turn is slower than a function call
     const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
     await page.click(`.chips button:text-is("${label}")`);
     await page.waitForFunction(
-      n => document.querySelectorAll("#chat .msg.a").length > n, before, { timeout: 20000 }
+      n => document.querySelectorAll("#chat .msg.a").length > n, before, { timeout: budget }
     ).catch(() => {});                 // a beat that never answers still gets filmed
     await page.waitForTimeout(settle);
   }

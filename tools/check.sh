@@ -16,3 +16,13 @@ if grep -nE 'insertAdjacentHTML\(|\.innerHTML[[:space:]]*=|outerHTML[[:space:]]*
   echo "FAIL: HTML sink on a page that renders partner text"; exit 1
 fi
 echo "ok  no HTML sinks"
+
+# A credential must never reach a commit, a log, or a video frame.
+if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+  echo "FAIL: .env is tracked by git"; exit 1
+fi
+if grep -rlE 'AIza[0-9A-Za-z_-]{30,}' --exclude-dir=.git --exclude-dir=node_modules \
+     --exclude-dir=.airlock-video --exclude-dir=.firecrawl . 2>/dev/null | grep -q .; then
+  echo "FAIL: something that looks like an API key is in the tree"; exit 1
+fi
+echo "ok  no credentials in the tree"
