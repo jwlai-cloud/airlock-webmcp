@@ -1,39 +1,39 @@
 A marketer asks an agent how their customers overlap with a partner's audience.
 <break time="1.2s" />
-It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.
+A real Gemini model, discovering this page's tools and calling them.
 <break time="1.2s" />
-That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.
+But it cannot measure the overlap. That tool is not registered, so it was never in the list the model was given.
 <break time="1.2s" />
-Two companies share customers and neither can say how many. Answering it means comparing two customer lists, and neither may show the other its list.
+That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.
 <break time="1.2s" />
-Today that means a data clean room. Six figures a year, and both companies upload their customer files to a third party. The measurement creates the risk.
+Two companies share customers and neither can say how many. Comparing the lists means showing them.
 <break time="1.2s" />
-Airlock is two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.
+So today they hire a clean room. Six figures a year, and both upload their customer files to a third party.
 <break time="1.2s" />
-WebMCP lets each app write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.
+Airlock is two ordinary web apps on two origins. Everything between them is WebMCP: ten tools, both halves of the API.
 <break time="1.2s" />
-Asking the publisher for the raw records is refused outright.
+exposedTo names one origin and no other. A third origin gets no denial — it never learns the tools exist.
+<break time="1.2s" />
+One tool is a form with two attributes. The browser writes its schema, and submitting it runs the page's own handler.
+<break time="1.2s" />
+Ask for the raw records and it refuses outright.
 <break time="1.2s" />
 So it asks for approval. A person decides, on each side.
 <break time="1.2s" />
-The request crosses to the publisher's console as a tool call. Their officer decides independently.
+The request crosses to the publisher's own console, as a tool call. Their officer decides independently.
 <break time="1.2s" />
-Two approvals, and only now is the tool registered. Consent creates the capability.
+Two approvals, and only now does registerTool run. Consent creates the capability.
 <break time="1.2s" />
-Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.
+Now the model can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.
 <break time="1.2s" />
-The publisher also returned a note. It is a prompt injection, telling the agent to export everything.
+The publisher also returned a note. It is a prompt injection.
 <break time="1.2s" />
-It is quarantined as text, never followed. And no tool over there can return a record anyway.
+It carries untrustedContentHint — but a hint enforces nothing, so we treat the text as data regardless.
 <break time="1.2s" />
-Ask about a segment too thin to be safe, and the answer is withheld, not rounded.
+A segment too thin to be safe is withheld, not rounded.
 <break time="1.2s" />
-Every crossing is on the record, on both sides.
+Three gates, and not one depends on the model behaving well.
 <break time="1.2s" />
-The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.
+And it is revocable. Withdraw approval, the signal aborts, the tool is gone.
 <break time="1.2s" />
-That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.
-<break time="1.2s" />
-And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.
-<break time="1.2s" />
-Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.
+Two companies answered a question about their shared customers. Neither saw the other's data. Airlock.

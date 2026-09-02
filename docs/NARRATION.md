@@ -1,35 +1,24 @@
 # Narration script — read this aloud
 
-**20 lines, 370 words.** Aim for about **2:12 of speech**; the picture adds
-roughly 26 seconds and the finished video must be **under 3:00**.
+**20 lines, 305 words**, about **1:49 of speech**. The picture adds roughly
+45 seconds when a live model is driving it, so the cut lands near 2:35 of a 3:00 limit.
 
-> **Render at ElevenLabs speed 1.00.** A take at 1.20 read at 213 wpm, which is too
-> fast for a technical explanation.
+> **Render at ElevenLabs speed 1.00.**
 
-This version opens with the product working and the argument landing inside the first
-fifteen seconds, which is what the organisers asked for. Lines 1 to 3 are the cold
-open: an agent is asked a question, cannot answer, and the reason is the whole point.
-
-> **If credits are tight, use the API rather than the web UI.** ElevenLabs bills per
-> character of what you send, and the `<break time="1.2s" />` tags the web UI needs are
-> billed too — nineteen of them is 437 characters of pure markup. Rendering line by line
-> through the API sends only the speech: **2,182 characters instead of 2,619**, and the
-> segmentation is exact so nothing has to be split afterwards.
->
-> `node tools/capture.js --estimate` prints the cost before you spend it.
-> `eleven_flash_v2_5` costs about half of `eleven_multilingual_v2` if you need it.
+This version is driven by a real Gemini model and cuts to two slides — the WebMCP API
+surface, and the three gates an injection meets. Four of the twenty lines name WebMCP
+or a specific call, up from two.
 
 ## How to record
 
 ```bash
-# ElevenLabs API — one request per line, exact segmentation
 export ELEVENLABS_API_KEY=...
 node tools/capture.js --list-voices
 node tools/capture.js --tts eleven --voice-id <id>
 
-# or the web UI: paste docs/NARRATION-paste.txt, download, then
+# or the web UI: paste docs/NARRATION-paste.txt, then
 node tools/split-vo.js ~/Downloads/airlock.mp3
-node tools/capture.js --tts file
+node tools/capture.js --tts file --with-key --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
 ```
 
 ---
@@ -44,115 +33,115 @@ node tools/capture.js --tts file
 
 ### 2
 
-> It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.
+> A real Gemini model, discovering this page's tools and calling them.
 
-<sub>on screen: It can't. That tool is not registered — getTools() never returns it.</sub>
+<sub>on screen: The model calls a tool. Then it hits the boundary.</sub>
 
 ### 3
 
-> That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.
+> But it cannot measure the overlap. That tool is not registered, so it was never in the list the model was given.
 
-<sub>on screen: A permission check can be argued past. A missing tool cannot.</sub>
+<sub>on screen: estimate_overlap is not registered — getTools() never returns it.</sub>
 
 ### 4
 
-> Two companies share customers and neither can say how many. Answering it means comparing two customer lists, and neither may show the other its list.
+> That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.
 
-<sub>on screen: Two companies. One question neither can answer.</sub>
+<sub>on screen: A permission check can be argued past. A missing tool cannot.</sub>
 
 ### 5
 
-> Today that means a data clean room. Six figures a year, and both companies upload their customer files to a third party. The measurement creates the risk.
+> Two companies share customers and neither can say how many. Comparing the lists means showing them.
 
-<sub>on screen: Today: a clean-room vendor, six figures, both files uploaded.</sub>
+<sub>on screen: Two companies. One question neither can answer.</sub>
 
 ### 6
 
-> Airlock is two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.
+> So today they hire a clean room. Six figures a year, and both upload their customer files to a third party.
 
-<sub>on screen: Airlock is two ordinary web apps, on two different origins.</sub>
+<sub>on screen: Today: a clean-room vendor, six figures, both files uploaded.</sub>
 
 ### 7
 
-> WebMCP lets each app write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.
+> Airlock is two ordinary web apps on two origins. Everything between them is WebMCP: ten tools, both halves of the API.
 
-<sub>on screen: WebMCP: each app declares what it can do.</sub>
+<sub>on screen: Airlock is built entirely from WebMCP.</sub>
 
 ### 8
 
-> Asking the publisher for the raw records is refused outright.
+> exposedTo names one origin and no other. A third origin gets no denial — it never learns the tools exist.
+
+<sub>on screen: exposedTo publishes to one origin. Nothing else can see them.</sub>
+
+### 9
+
+> One tool is a form with two attributes. The browser writes its schema, and submitting it runs the page's own handler.
+
+<sub>on screen: One tool is a <form>. The browser writes its schema.</sub>
+
+### 10
+
+> Ask for the raw records and it refuses outright.
 
 <sub>on screen: Asking for the records directly is refused outright.</sub>
 
-### 9
+### 11
 
 > So it asks for approval. A person decides, on each side.
 
 <sub>on screen: Approval is a business decision. A person makes it on each side.</sub>
 
-### 10
-
-> The request crosses to the publisher's console as a tool call. Their officer decides independently.
-
-<sub>on screen: The request crosses to the publisher's console as a tool call.</sub>
-
-### 11
-
-> Two approvals, and only now is the tool registered. Consent creates the capability.
-
-<sub>on screen: Two approvals → registerTool(). Watch the tool list.</sub>
-
 ### 12
 
-> Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.
+> The request crosses to the publisher's own console, as a tool call. Their officer decides independently.
 
-<sub>on screen: 2,178 shared. 13,057 more reachable. Zero records moved.</sub>
+<sub>on screen: It crosses to the publisher's console — as a WebMCP tool call.</sub>
 
 ### 13
 
-> The publisher also returned a note. It is a prompt injection, telling the agent to export everything.
+> Two approvals, and only now does registerTool run. Consent creates the capability.
 
-<sub>on screen: The publisher also returned free text — and it is an attack.</sub>
+<sub>on screen: Two approvals → registerTool(). Watch the tool list.</sub>
 
 ### 14
 
-> It is quarantined as text, never followed. And no tool over there can return a record anyway.
+> Now the model can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.
 
-<sub>on screen: Quarantined as text. Never followed as an instruction.</sub>
+<sub>on screen: 2,178 shared. 13,057 more reachable. Zero records moved.</sub>
 
 ### 15
 
-> Ask about a segment too thin to be safe, and the answer is withheld, not rounded.
+> The publisher also returned a note. It is a prompt injection.
 
-<sub>on screen: Too few people matched. The number is withheld, not rounded.</sub>
+<sub>on screen: The publisher also returned free text — and it is an attack.</sub>
 
 ### 16
 
-> Every crossing is on the record, on both sides.
+> It carries untrustedContentHint — but a hint enforces nothing, so we treat the text as data regardless.
 
-<sub>on screen: Every crossing is on the record, for both companies.</sub>
+<sub>on screen: untrustedContentHint — but the hint enforces nothing.</sub>
 
 ### 17
 
-> The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.
+> A segment too thin to be safe is withheld, not rounded.
 
-<sub>on screen: exposedTo: four capabilities to this origin, nothing else.</sub>
+<sub>on screen: Too few people matched. The number is withheld, not rounded.</sub>
 
 ### 18
 
-> That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.
+> Three gates, and not one depends on the model behaving well.
 
-<sub>on screen: All of it: registerTool · exposedTo · getTools · executeTool.</sub>
+<sub>on screen: Three gates. None of them trusts the model.</sub>
 
 ### 19
 
-> And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.
+> And it is revocable. Withdraw approval, the signal aborts, the tool is gone.
 
 <sub>on screen: Withdraw approval → the signal aborts → the tool is gone.</sub>
 
 ### 20
 
-> Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.
+> Two companies answered a question about their shared customers. Neither saw the other's data. Airlock.
 
 <sub>on screen: A permission check can be argued past. A tool that does not exist cannot. · github.com/jwlai-cloud/airlock-webmcp</sub>
 

@@ -69,106 +69,110 @@ const dur = f => parseFloat(sh("ffprobe",
    read aloud over it. `go` runs before the caption appears. `extra` adds hold on
    top of the spoken length, for beats where the screen needs longer than the line. */
 const SCRIPT = [
-  // ---- COLD OPEN: the product working, and the whole argument, inside 15s ----
+  // ---- COLD OPEN: a real model, hitting the boundary ----
   { cap: "A marketer asks an agent about a partner's audience.",
     vo: "A marketer asks an agent how their customers overlap with a partner's audience.",
     go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(300); } },
 
-  { cap: "It can't. That tool is not registered — getTools() never returns it.",
-    vo: "It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.1 },
+  { cap: "The model calls a tool. Then it hits the boundary.",
+    vo: "A real Gemini model, discovering this page's tools and calling them.",
+    go: async (p, h) => { await h.ask("What audiences do we hold?"); }, extra: 0.2 },
+
+  { cap: "estimate_overlap is not registered — getTools() never returns it.",
+    vo: "But it cannot measure the overlap. That tool is not registered, so it was never in the list the model was given.",
+    go: async (p, h) => { await h.ask("How much does high lifetime value overlap with Meridian's sports fans?",
+                                      { allowModal: true }); }, extra: 0.2 },
 
   { cap: "A permission check can be argued past. A missing tool cannot.",
-    vo: "That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.",
-    extra: 0.15 },
+    vo: "That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.",
+    extra: 0.3 },
 
-  // ---- why anyone needs this ----
+  // ---- the problem ----
   { cap: "Two companies. One question neither can answer.",
-    vo: "Two companies share customers and neither can say how many. Answering it means comparing two customer lists, and neither may show the other its list." },
+    vo: "Two companies share customers and neither can say how many. Comparing the lists means showing them.",
+    go: async (p, h) => { await h.dismissModal(); await p.click('nav a[data-view="overview"]');
+                          await p.waitForTimeout(300); } },
 
   { cap: "Today: a clean-room vendor, six figures, both files uploaded.",
-    vo: "Today that means a data clean room. Six figures a year, and both companies upload their customer files to a third party. The measurement creates the risk." },
+    vo: "So today they hire a clean room. Six figures a year, and both upload their customer files to a third party." },
 
-  // ---- it is an ordinary app with declared actions ----
-  { cap: "Airlock is two ordinary web apps, on two different origins.",
-    vo: "Airlock is two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.",
-    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(300); },
-    extra: 0.1 },
+  // ---- SLIDE: the WebMCP surface ----
+  { cap: "Airlock is built entirely from WebMCP.",
+    vo: "Airlock is two ordinary web apps on two origins. Everything between them is WebMCP: ten tools, both halves of the API.",
+    go: async (p, h) => { await h.showDiagram("webmcp-surface.png"); }, extra: 0.5 },
 
-  { cap: "WebMCP: each app declares what it can do.",
-    vo: "WebMCP lets each app write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
-    go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(350); },
-    extra: 0.1 },
+  { cap: "exposedTo publishes to one origin. Nothing else can see them.",
+    vo: "exposedTo names one origin and no other. A third origin gets no denial — it never learns the tools exist.",
+    extra: 0.4 },
 
-  // ---- refusal two ----
+  { cap: "One tool is a <form>. The browser writes its schema.",
+    vo: "One tool is a form with two attributes. The browser writes its schema, and submitting it runs the page's own handler.",
+    extra: 0.4 },
+
+  // ---- refusal two, live ----
   { cap: "Asking for the records directly is refused outright.",
-    vo: "Asking the publisher for the raw records is refused outright.",
-    go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
+    vo: "Ask for the raw records and it refuses outright.",
+    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(300);
+                          await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
                           await h.chip("Export Meridian's customer records"); } },
 
   // ---- approval ----
   { cap: "Approval is a business decision. A person makes it on each side.",
     vo: "So it asks for approval. A person decides, on each side.",
     go: async (p, h) => { await h.chip("Request approval to measure incremental reach",
-                                       { waitFor: "modal" });
-                          await p.waitForTimeout(300); } },
+                                       { waitFor: "modal" }); await p.waitForTimeout(250); } },
 
-  { cap: "The request crosses to the publisher's console as a tool call.",
-    vo: "The request crosses to the publisher's console as a tool call. Their officer decides independently.",
+  { cap: "It crosses to the publisher's console — as a WebMCP tool call.",
+    vo: "The request crosses to the publisher's own console, as a tool call. Their officer decides independently.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
-                          await p.waitForTimeout(300); }, extra: 0.1 },
+                          await p.waitForTimeout(300); }, extra: 0.2 },
 
   { cap: "Two approvals → registerTool(). Watch the tool list.",
-    vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
+    vo: "Two approvals, and only now does registerTool run. Consent creates the capability.",
     go: async (p, h) => { await h.partner.locator("#byes").click();
-                          await p.waitForTimeout(350);
+                          await p.waitForTimeout(500);
                           await p.click('nav a[data-view="diag"]');
-                          await p.waitForTimeout(350); } },
+                          await p.waitForTimeout(700); }, extra: 0.2 },
 
-  // ---- the answer ----
+  // ---- the answer, live model ----
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
-    vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.2 },
+    vo: "Now the model can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.",
+    go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
+                          await h.ask("Now measure the overlap between high lifetime value and sports fans."); },
+    extra: 0.4 },
 
   // ---- injection ----
   { cap: "The publisher also returned free text — and it is an attack.",
-    vo: "The publisher also returned a note. It is a prompt injection, telling the agent to export everything." },
+    vo: "The publisher also returned a note. It is a prompt injection." },
 
-  { cap: "Quarantined as text. Never followed as an instruction.",
-    vo: "It is quarantined as text, never followed. And no tool over there can return a record anyway.",
-    extra: 0.1 },
+  { cap: "untrustedContentHint — but the hint enforces nothing.",
+    vo: "It carries untrustedContentHint — but a hint enforces nothing, so we treat the text as data regardless.",
+    extra: 0.3 },
 
   // ---- k-anonymity ----
   { cap: "Too few people matched. The number is withheld, not rounded.",
-    vo: "Ask about a segment too thin to be safe, and the answer is withheld, not rounded.",
-    go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(1600); },
-    extra: 0.07 },
+    vo: "A segment too thin to be safe is withheld, not rounded.",
+    go: async (p, h) => { await h.chip("Check luxury auto intenders"); }, extra: 0.15 },
 
-  // ---- audit + exposedTo ----
-  { cap: "exposedTo: four capabilities to this origin, nothing else.",
-    vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.",
-    go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(350); },
-    extra: 0.07 },
-
-  { cap: "All of it: registerTool · exposedTo · getTools · executeTool.",
-    vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.",
-    go: async (p, h) => { await h.showDiagram("airlock-architecture.png"); },
-    extra: 0.2 },
+  // ---- SLIDE: the defence ----
+  { cap: "Three gates. None of them trusts the model.",
+    vo: "Three gates, and not one depends on the model behaving well.",
+    go: async (p, h) => { await h.showDiagram("airlock-defence.png"); }, extra: 0.4 },
 
   // ---- revocation ----
   { cap: "Withdraw approval → the signal aborts → the tool is gone.",
-    vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
-    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(250);
+    vo: "And it is revocable. Withdraw approval, the signal aborts, the tool is gone.",
+    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(300);
                      await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
-                     await p.click("#btn-revoke"); await p.waitForTimeout(300);
-                     await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(800); } },
+                     await p.click("#btn-revoke"); await p.waitForTimeout(400);
+                     await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(600); } },
 
   // ---- close ----
   { cap: "A permission check can be argued past. A tool that does not exist cannot.\ngithub.com/jwlai-cloud/airlock-webmcp",
-    vo: "Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.",
-    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(300); },
-    extra: 0.35 }
+    vo: "Two companies answered a question about their shared customers. Neither saw the other's data. Airlock.",
+    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(400); },
+    extra: 0.6 }
 ];
 
 // `node tools/capture.js --estimate` prints what a render will cost before spending it.
@@ -389,7 +393,10 @@ if (argv.includes("--list-voices")) {
   // PNG is injected as a data URI because the page is served over http and cannot read
   // file://. The caption bar sits above it, so the lower third keeps working.
   async function showDiagram(file) {
-    const b64 = fs.readFileSync(path.resolve(__dirname, "../docs/diagrams", file)).toString("base64");
+    const roots = ["../docs/diagrams", "../docs/slides"];
+    const found = roots.map(r => path.resolve(__dirname, r, file)).find(fs.existsSync);
+    if (!found) throw new Error("no such slide or diagram: " + file);
+    const b64 = fs.readFileSync(found).toString("base64");
     await page.evaluate(src => {
       let el = document.getElementById("__diag");
       if (!el) {
@@ -435,7 +442,27 @@ if (argv.includes("--list-voices")) {
     await page.waitForTimeout(settle);
   }
 
-  const helpers = { partner: page.frameLocator("#f"), chip, showDiagram, hideDiagram };
+  // ask() types a real question, the way someone using the product would
+  async function ask(q, { allowModal = false } = {}) {
+    const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
+    await page.fill("#ask", q);
+    await page.click("#send");
+    const done = page.waitForFunction(
+      n => document.querySelectorAll("#chat .msg.a").length > n, before,
+      { timeout: WITH_KEY ? 60000 : 20000 });
+    if (allowModal) {
+      // a capable model may reach for approval on its own, which blocks on a dialog
+      await Promise.race([done.catch(() => {}),
+        page.waitForSelector("#veil.on", { timeout: 60000 }).catch(() => {})]);
+    } else { await done.catch(() => {}); }
+    await page.waitForTimeout(200);
+  }
+  const dismissModal = async () => {
+    if (await page.isVisible("#veil.on").catch(() => false)) await page.click("#mno");
+  };
+
+  const helpers = { partner: page.frameLocator("#f"), chip, ask, dismissModal,
+                    showDiagram, hideDiagram };
   const t0 = Date.now();
   const beats = [];
   for (let i = 0; i < SCRIPT.length; i++) {

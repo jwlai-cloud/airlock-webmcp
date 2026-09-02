@@ -1,0 +1,76 @@
+<meta charset=utf-8>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{--ground:#F2F5F4;--surface:#fff;--ink:#16211F;--ink2:#4A5C58;--ink3:#7C8D89;
+      --line:#D9E0DE;--brand:#0B5E52;--ok:#1B7F5E;--bad:#B0442F;--info:#2C5670;
+      --ok-w:#E2F0EA;--bad-w:#F7E4DF;--info-w:#E3EBF0}
+*{box-sizing:border-box;margin:0}
+body{width:1920px;height:1080px;background:var(--ground);color:var(--ink);
+  font:400 24px/1.45 "IBM Plex Sans",system-ui,sans-serif;padding:52px 64px;
+  display:flex;flex-direction:column;gap:30px}
+h1{font-size:46px;font-weight:600;letter-spacing:-.02em}
+.sub{color:var(--ink3);font-size:25px;margin-top:-16px}
+.mono{font-family:"IBM Plex Mono",monospace}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;flex:1;min-height:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:22px 26px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.card h2{font-size:15px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink3);font-weight:600}
+pre{font-family:"IBM Plex Mono",monospace;font-size:19px;line-height:1.6;flex:1;
+  background:#0E1413;color:#DEE6E4;border-radius:9px;padding:18px 22px;overflow:hidden}
+pre .k{color:#7FAAD0}pre .s{color:#57BC93}pre .c{color:#6E807C}pre .r{color:#E08972}
+table{border-collapse:collapse;width:100%;font-size:21px}
+td{padding:9px 14px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.n{font-family:"IBM Plex Mono",monospace;white-space:nowrap;color:var(--brand);font-weight:500}
+.pill{display:inline-block;font-size:18px;font-weight:500;padding:2px 12px;border-radius:99px;
+  border:1px solid currentColor}
+.ok{color:var(--ok);background:var(--ok-w)}.bad{color:var(--bad);background:var(--bad-w)}
+.info{color:var(--info);background:var(--info-w)}
+</style>
+<h1>Every WebMCP surface, used</h1>
+<div class=sub>Ten tools across two origins — both halves of the API, both enforcement mechanisms</div>
+<div class=grid>
+  <div class=card>
+    <h2>Imperative — cross-origin exposure</h2>
+    <pre><span class=c>// origin B publishes to exactly one origin</span>
+document.modelContext.<span class=k>registerTool</span>(tool, {
+  <span class=k>exposedTo</span>: [<span class=s>"https://advertiser.example"</span>]
+});
+
+<span class=c>// origin A discovers and invokes across it</span>
+<span class=k>const</span> t = <span class=k>await</span> mc.<span class=k>getTools</span>({ fromOrigins: [B] });
+<span class=k>const</span> raw = <span class=k>await</span> mc.<span class=k>executeTool</span>(t, JSON.stringify(x));</pre>
+  </div>
+  <div class=card>
+    <h2>Declarative — the browser writes the schema</h2>
+    <pre><span class=c>&lt;!-- no JavaScript at all --&gt;</span>
+&lt;<span class=k>form</span> <span class=s>toolname</span>=<span class=s>"check_segment_reach"</span>
+      <span class=s>tooldescription</span>=<span class=s>"Reach of one segment…"</span>&gt;
+  &lt;<span class=k>select</span> name=<span class=s>"segment"</span>
+     <span class=s>toolparamdescription</span>=<span class=s>"e.g. sports-fans"</span>&gt;
+&lt;/<span class=k>form</span>&gt;
+
+<span class=c>// submitting it runs the page's own handler:</span>
+<span class=c>// human path and agent path are the same code</span></pre>
+  </div>
+  <div class=card>
+    <h2>Authority by tool existence</h2>
+    <pre><span class=c>// not registered until BOTH operators approve</span>
+overlapAbort = <span class=k>new</span> AbortController();
+mc.<span class=k>registerTool</span>(estimateOverlap,
+              { <span class=k>signal</span>: overlapAbort.signal });
+
+overlapAbort.<span class=r>abort</span>();  <span class=c>// the tool ceases to exist</span>
+<span class=c>// each transition fires `toolchange`</span></pre>
+  </div>
+  <div class=card>
+    <h2>The rest of the surface</h2>
+    <table>
+      <tr><td class=n>allow="tools"</td><td>Permissions Policy — delegates the API to the cross-origin frame <span class="pill ok">enforced</span></td></tr>
+      <tr><td class=n>readOnlyHint</td><td>on every tool that only reads</td></tr>
+      <tr><td class=n>untrustedContentHint</td><td>on every tool returning partner free text <span class="pill bad">advisory only</span></td></tr>
+      <tr><td class=n>toolchange</td><td>re-render the live registry as consent changes</td></tr>
+      <tr><td class=n>title</td><td>display name for browser-native UI</td></tr>
+    </table>
+  </div>
+</div>
