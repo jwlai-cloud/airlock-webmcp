@@ -164,6 +164,24 @@ const SCRIPT = [
     extra: 0.7 }
 ];
 
+// `node tools/capture.js --estimate` prints what a render will cost before spending it.
+// ElevenLabs bills per character of the request body's text, so rendering line by line
+// through the API costs strictly less than pasting the script with <break> tags into the
+// web UI -- the tags are billed too, and nineteen of them is several hundred characters.
+if (argv.includes("--estimate")) {
+  const chars = SCRIPT.reduce((n, b) => n + b.vo.length, 0);
+  const words = SCRIPT.reduce((n, b) => n + b.vo.split(/\s+/).length, 0);
+  const tagged = chars + (SCRIPT.length - 1) * '<break time="1.2s" />\n\n'.length;
+  console.log(`${SCRIPT.length} lines, ${words} words`);
+  console.log(`  API, line by line   ${chars} characters`);
+  console.log(`  web UI with breaks  ${tagged} characters  (+${tagged - chars} of markup)`);
+  console.log(`\nElevenLabs bills roughly 1 credit per character on the v2 models and`);
+  console.log(`about half that on the turbo and flash models:`);
+  console.log(`  eleven_multilingual_v2  ~${chars} credits`);
+  console.log(`  eleven_flash_v2_5       ~${Math.round(chars / 2)} credits`);
+  process.exit(0);
+}
+
 // `node tools/capture.js --list-voices` prints the voices on your ElevenLabs account.
 if (argv.includes("--list-voices")) {
   const key = process.env.ELEVENLABS_API_KEY;

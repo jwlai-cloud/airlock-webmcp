@@ -10,6 +10,15 @@ This version opens with the product working and the argument landing inside the 
 fifteen seconds, which is what the organisers asked for. Lines 1 to 3 are the cold
 open: an agent is asked a question, cannot answer, and the reason is the whole point.
 
+> **If credits are tight, use the API rather than the web UI.** ElevenLabs bills per
+> character of what you send, and the `<break time="1.2s" />` tags the web UI needs are
+> billed too — nineteen of them is 437 characters of pure markup. Rendering line by line
+> through the API sends only the speech: **2,182 characters instead of 2,619**, and the
+> segmentation is exact so nothing has to be split afterwards.
+>
+> `node tools/capture.js --estimate` prints the cost before you spend it.
+> `eleven_flash_v2_5` costs about half of `eleven_multilingual_v2` if you need it.
+
 ## How to record
 
 ```bash
