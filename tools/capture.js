@@ -63,8 +63,7 @@ const SCRIPT = [
 
   { cap: "It can't. That tool is not registered — getTools() never returns it.",
     vo: "It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1400); }, extra: 0.2 },
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.2 },
 
   { cap: "A permission check can be argued past. A missing tool cannot.",
     vo: "That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.",
@@ -92,8 +91,7 @@ const SCRIPT = [
   { cap: "Asking for the records directly is refused outright.",
     vo: "Asking the publisher for the raw records is refused outright.",
     go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(400);
-                          await h.chip("Export Meridian's customer records");
-                          await p.waitForTimeout(1500); } },
+                          await h.chip("Export Meridian's customer records"); } },
 
   // ---- approval ----
   { cap: "Approval is a business decision. A person makes it on each side.",
@@ -117,8 +115,7 @@ const SCRIPT = [
   // ---- the answer ----
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1700); }, extra: 0.4 },
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.4 },
 
   // ---- injection ----
   { cap: "The publisher also returned free text — and it is an attack.",
@@ -380,11 +377,19 @@ if (argv.includes("--list-voices")) {
     if (el) el.style.opacity = "0";
   });
 
-  const helpers = {
-    partner: page.frameLocator("#f"),
-    chip: label => page.click(`.chips button:text-is("${label}")`),
-    showDiagram, hideDiagram
-  };
+  // Recording against the deployed pair means every partner call is a real network
+  // round trip, so a fixed delay after a click is a race: the next beat can fire while
+  // the previous answer is still in flight. Wait for the assistant's reply instead.
+  async function chip(label, settle = 350) {
+    const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
+    await page.click(`.chips button:text-is("${label}")`);
+    await page.waitForFunction(
+      n => document.querySelectorAll("#chat .msg.a").length > n, before, { timeout: 20000 }
+    ).catch(() => {});                 // a beat that never answers still gets filmed
+    await page.waitForTimeout(settle);
+  }
+
+  const helpers = { partner: page.frameLocator("#f"), chip, showDiagram, hideDiagram };
   const t0 = Date.now();
   const beats = [];
   for (let i = 0; i < SCRIPT.length; i++) {

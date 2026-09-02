@@ -12,7 +12,7 @@ Paste-ready. Numbers here must match `docs/VIDEO-SCRIPT.md` and the README exact
 
 ## Elevator pitch (200 char limit)
 
-Two companies compare customer lists without sharing them. The agent can't overshare, because the tool to do it doesn't exist until both sides say yes.
+Two companies compare customer lists without sharing them. Each side publishes WebMCP tools to the other's origin — and the tool that crosses doesn't exist until both approve.
 
 ---
 

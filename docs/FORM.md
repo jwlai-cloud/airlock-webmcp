@@ -18,7 +18,7 @@ industry term: "Airlock — a data clean room in the browser" (42), or
 ## Elevator pitch
 
 ```
-Two companies compare customer lists without sharing them. The agent can't overshare, because the tool to do it doesn't exist until both sides say yes.
+Two companies compare customer lists without sharing them. Each side publishes WebMCP tools to the other's origin — and the tool that crosses doesn't exist until both approve.
 ```
 
 *(172 characters)*
