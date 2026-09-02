@@ -53,8 +53,9 @@ either.
 ## Drive it with a real agent
 
 Airlock registers plain WebMCP tools, so any agent can operate it — nothing is scripted
-for a particular one. In Chrome, open the built-in agent (it runs
-`gemini-3-flash-preview`) and ask in your own words:
+for a particular one. The quickest way to see that is Google's [Model Context Tool
+Inspector](https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd)
+extension, whose agent chat runs `gemini-3-flash-preview`. Ask it in your own words:
 
 > How much does our high lifetime value audience overlap with Meridian's sports fans?
 

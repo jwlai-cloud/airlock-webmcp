@@ -59,10 +59,13 @@ No account, no login, no API key.
 
 Drive it three ways, all reaching the same tools:
 
-  • Chrome's own agent (runs gemini-3-flash-preview) — ask it in your own words:
-    "How much does our high lifetime value audience overlap with Meridian's
-    sports fans?" Before approval it will report no such tool exists, because
-    none does. Ask it to export the partner's records and it is refused.
+  • A real agent — install Google's Model Context Tool Inspector extension:
+    https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd
+    Its agent chat runs gemini-3-flash-preview and discovers these tools by
+    itself. Ask in your own words: "How much does our high lifetime value
+    audience overlap with Meridian's sports fans?" Before approval it reports no
+    such tool exists, because none does. Ask it to export the partner's records
+    and it is refused.
   • Your own Gemini key, pasted in Agent settings — stays in your browser.
   • The built-in panel — a deterministic router, no model, labelled as such.
 
@@ -159,10 +162,11 @@ Also built, and exercised only in part:
 - A Gemini function-calling client inside the page, driven by the visitor's own
   API key. Its tool declarations are asserted by the test suite; we did not have
   a key to run a full live conversation through it.
-- Chrome's built-in agent (gemini-3-flash-preview) will discover these tools
-  with no configuration, since they are registered through the standard API and
-  nothing is scripted for a particular client. We could not automate it, so we
-  are not claiming a verified run.
+- Google's Model Context Tool Inspector extension, whose agent chat runs
+  gemini-3-flash-preview, will discover these tools with no configuration, since
+  they are registered through the standard API and nothing is scripted for a
+  particular client. The extension is not scriptable, so we are not claiming a
+  verified end-to-end run through it.
 
 Not tested: ChatGPT's in-app browser. We had no access to it. Saying so here
 rather than leaving a judge to find out.

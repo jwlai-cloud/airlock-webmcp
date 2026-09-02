@@ -107,8 +107,9 @@ showing both sides, synthetic data, deployed HTTPS pair.
 differential privacy (k-anonymity only — say so plainly rather than overclaiming).
 
 **Airlock calls no model.** The tools are the product; any WebMCP agent drives them.
-Chrome's built-in agent (`gemini-3-flash-preview`) discovers and invokes them with no
-work on our side, which is the point of registering standard tools. The in-app assistant
+Google's Model Context Tool Inspector extension, whose agent chat runs
+`gemini-3-flash-preview`, discovers and invokes them with no work on our side — which is
+the point of registering standard tools. The in-app assistant
 is a labelled deterministic fallback for browsers without an agent — it uses the same
 `getTools()` / `executeTool()` path and no model. There is no API key anywhere in this
 project, and nothing to leak.

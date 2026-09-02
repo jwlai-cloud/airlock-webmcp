@@ -298,8 +298,10 @@ tr:last-child td{border-bottom:0}
             <div class=body>
               <div class=stack>
                 <p class=lead>Airlock registers plain WebMCP tools, so <b>any</b> agent can
-                  operate it. In Chrome, open the built-in agent — it runs
-                  <span class=mono>gemini-3-flash-preview</span> — and ask in your own words:</p>
+                  operate it. The quickest way to see that is Google's own
+                  <a href="https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd" target=_blank rel=noopener>Model Context Tool Inspector</a>
+                  extension, whose agent chat runs
+                  <span class=mono>gemini-3-flash-preview</span>. Ask it in your own words:</p>
                 <div class=quote>“How much does our high lifetime value audience overlap with
                   Meridian's sports fans?”</div>
                 <p class=lead>Before approval it will tell you no such tool exists, because
@@ -468,10 +470,11 @@ tr:last-child td{border-bottom:0}
       <div class=railnote style="display:flex;justify-content:space-between;gap:8px;align-items:center">
         <span>Assistant mode</span><span class="pill mute" id=railmode>fallback router · no model</span>
       </div>
-      <div class=railnote><b>Using Chrome's own agent?</b> It runs
-        <span class=mono>gemini-3-flash-preview</span> and will discover these same tools
-        by itself — open it and ask in your own words. The assistant below is a fallback
-        for browsers without one: a deterministic router, no model, calling the identical
+      <div class=railnote><b>Using a real agent?</b> Google's
+        <a href="https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd" target=_blank rel=noopener>Model Context Tool Inspector</a>
+        extension runs <span class=mono>gemini-3-flash-preview</span> and discovers these
+        same tools by itself. The assistant below is a fallback for browsers without an
+        agent: a deterministic router, no model, calling the identical
         <span class=mono>getTools()</span> and <span class=mono>executeTool()</span>.</div>
       <div class=chat id=chat></div>
       <div class=composer>

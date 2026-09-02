@@ -181,8 +181,10 @@ Also used: `allow="tools"` to delegate the API to the cross-origin frame, `annot
 (`readOnlyHint`, `untrustedContentHint`), the `toolchange` event, and `AbortController`
 for revocation.
 
-**Airlock calls no model and ships no API key.** Chrome's built-in agent
-(`gemini-3-flash-preview`) discovers these tools by itself. A judge who prefers to watch a
+**Airlock calls no model and ships no API key.** Google's [Model Context Tool
+Inspector](https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd)
+extension — an agent chat running `gemini-3-flash-preview` — discovers these tools by
+itself, with no configuration on our side. A judge who prefers to watch a
 model reason over them can paste their own Gemini key in Agent settings — it stays in
 their browser and is sent only to Google. A deterministic no-model router is the fallback.
 All three drive the identical `getTools()` / `executeTool()` path.
