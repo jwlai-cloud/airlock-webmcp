@@ -56,55 +56,46 @@ const dur = f => parseFloat(sh("ffprobe",
    read aloud over it. `go` runs before the caption appears. `extra` adds hold on
    top of the spoken length, for beats where the screen needs longer than the line. */
 const SCRIPT = [
-  // ---- the problem -------------------------------------------------------
-  { cap: "Airlock — two companies, one question neither can answer.",
-    vo: "Two companies share customers, and neither can say how many. The most basic question in a partnership.",
-    go: async p => { await p.click('nav a[data-view="overview"]'); } },
+  // ---- COLD OPEN: the product working, and the whole argument, inside 15s ----
+  { cap: "A marketer asks an agent about a partner's audience.",
+    vo: "A marketer asks an agent how their customers overlap with a partner's audience.",
+    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500); } },
 
-  { cap: "Neither may show the other its customer list.",
-    vo: "Answering it means comparing two customer lists. Neither is allowed to show the other its list." },
+  { cap: "It can't. That tool is not registered — getTools() never returns it.",
+    vo: "It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.",
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
+                          await p.waitForTimeout(1400); }, extra: 0.2 },
 
-  { cap: "Today: a clean-room vendor, a contract, six figures.",
-    vo: "So today they hire a data clean room. Six figures a year, and both upload their customer files to a third party." },
+  { cap: "A permission check can be argued past. A missing tool cannot.",
+    vo: "That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.",
+    extra: 0.3 },
 
-  { cap: "To measure the overlap, both lists leave the building.",
-    vo: "To measure the overlap safely, both lists leave the building. The measurement creates the risk." },
+  // ---- why anyone needs this ----
+  { cap: "Two companies. One question neither can answer.",
+    vo: "Two companies share customers and neither can say how many. Answering it means comparing two customer lists, and neither may show the other its list." },
 
-  // ---- it is an ordinary web app, with declared actions -------------------
-  { cap: "Airlock starts as an ordinary web app.",
-    vo: "Airlock starts as an ordinary web app. A marketing team's workspace, with its own audiences and its own buttons." },
+  { cap: "Today: a clean-room vendor, six figures, both files uploaded.",
+    vo: "Today that means a data clean room. Six figures a year, and both companies upload their customer files to a third party. The measurement creates the risk." },
 
-  { cap: "WebMCP: the app declares what it can do.",
-    vo: "WebMCP lets it write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
+  // ---- it is an ordinary app with declared actions ----
+  { cap: "Airlock is two ordinary web apps, on two different origins.",
+    vo: "Airlock is two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.",
+    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
+    extra: 0.2 },
+
+  { cap: "WebMCP: each app declares what it can do.",
+    vo: "WebMCP lets each app write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
     go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
     extra: 0.2 },
 
-  { cap: "An agent calls those tools — no screenshots, no guessing.",
-    vo: "So an agent operates the product directly, instead of reading the screen and guessing.",
-    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(600); } },
-
-  // ---- the twist: the answer needs a second app --------------------------
-  { cap: "This answer needs a second origin — WebMCP's exposedTo.",
-    vo: "But this question needs a second app, owned by another company, on another origin. Live on the right, in a cross-origin frame.",
-    extra: 0.2 },
-
-
-  // ---- refusal one -------------------------------------------------------
-  { cap: "That tool is not registered, so getTools() never returns it.",
-    vo: "A marketer asks in plain language. The agent cannot answer: the tool that crosses the boundary is not registered, so it is not in its list.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1500); }, extra: 0.2 },
-
-  { cap: "Nothing to call — and no wording brings it into existence.",
-    vo: "That is the whole idea. A permission check can be argued past. A tool that does not exist cannot." },
-
-  // ---- refusal two -------------------------------------------------------
+  // ---- refusal two ----
   { cap: "Asking for the records directly is refused outright.",
-    vo: "Asking for the raw records is refused outright.",
-    go: async (p, h) => { await h.chip("Export Meridian's customer records");
+    vo: "Asking the publisher for the raw records is refused outright.",
+    go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(400);
+                          await h.chip("Export Meridian's customer records");
                           await p.waitForTimeout(1500); } },
 
-  // ---- approval ----------------------------------------------------------
+  // ---- approval ----
   { cap: "Approval is a business decision. A person makes it on each side.",
     vo: "So it asks for approval. A person decides, on each side.",
     go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
@@ -114,54 +105,51 @@ const SCRIPT = [
     vo: "The request crosses to the publisher's console as a tool call. Their officer decides independently.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
-                          await p.waitForTimeout(600); }, extra: 0.15 },
+                          await p.waitForTimeout(600); }, extra: 0.2 },
 
   { cap: "Two approvals → registerTool(). Watch the tool list.",
     vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
     go: async (p, h) => { await h.partner.locator("#byes").click();
                           await p.waitForTimeout(700);
-                          // the differentiator has to be visible, not asserted: this table
-                          // flips estimate_overlap from "not registered" to "registered"
                           await p.click('nav a[data-view="diag"]');
                           await p.waitForTimeout(900); } },
 
-  // ---- the answer --------------------------------------------------------
+  // ---- the answer ----
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
     go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?");
-                          await p.waitForTimeout(1700); }, extra: 0.2 },
+                          await p.waitForTimeout(1700); }, extra: 0.4 },
 
-  // ---- the injection -----------------------------------------------------
+  // ---- injection ----
   { cap: "The publisher also returned free text — and it is an attack.",
     vo: "The publisher also returned a note. It is a prompt injection, telling the agent to export everything." },
 
   { cap: "Quarantined as text. Never followed as an instruction.",
     vo: "It is quarantined as text, never followed. And no tool over there can return a record anyway.",
-    extra: 0.15 },
+    extra: 0.2 },
 
-  // ---- k-anonymity -------------------------------------------------------
+  // ---- k-anonymity ----
   { cap: "Too few people matched. The number is withheld, not rounded.",
     vo: "Ask about a segment too thin to be safe, and the answer is withheld, not rounded.",
     go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(1600); },
-    extra: 0.2 },
+    extra: 0.15 },
 
-  // ---- audit -------------------------------------------------------------
+  // ---- audit + exposedTo ----
   { cap: "Every crossing is on the record, for both companies.",
     vo: "Every crossing is on the record, on both sides.",
     go: async (p, h) => { await h.chip("Show me the audit trail"); await p.waitForTimeout(1400); } },
 
-  // ---- mechanism ---------------------------------------------------------
   { cap: "exposedTo: four capabilities to this origin, nothing else.",
     vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.",
     go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
-    extra: 0.2 },
+    extra: 0.15 },
 
   { cap: "All of it: registerTool · exposedTo · getTools · executeTool.",
     vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.",
     go: async (p, h) => { await h.showDiagram("airlock-architecture.png"); },
-    extra: 0.2 },
+    extra: 0.4 },
 
-  // ---- revocation --------------------------------------------------------
+  // ---- revocation ----
   { cap: "Withdraw approval → the signal aborts → the tool is gone.",
     vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
     go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(450);
@@ -169,11 +157,11 @@ const SCRIPT = [
                      await p.click("#btn-revoke"); await p.waitForTimeout(600);
                      await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(800); } },
 
-  // ---- close -------------------------------------------------------------
+  // ---- close ----
   { cap: "A permission check can be argued past. A tool that does not exist cannot.\ngithub.com/jwlai-cloud/airlock-webmcp",
     vo: "Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.",
     go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
-    extra: 0.6 }
+    extra: 0.7 }
 ];
 
 // `node tools/capture.js --list-voices` prints the voices on your ElevenLabs account.

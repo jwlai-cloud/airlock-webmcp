@@ -1,24 +1,18 @@
-Two companies share customers, and neither can say how many. The most basic question in a partnership.
+A marketer asks an agent how their customers overlap with a partner's audience.
 <break time="1.2s" />
-Answering it means comparing two customer lists. Neither is allowed to show the other its list.
+It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.
 <break time="1.2s" />
-So today they hire a data clean room. Six figures a year, and both upload their customer files to a third party.
+That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.
 <break time="1.2s" />
-To measure the overlap safely, both lists leave the building. The measurement creates the risk.
+Two companies share customers and neither can say how many. Answering it means comparing two customer lists, and neither may show the other its list.
 <break time="1.2s" />
-Airlock starts as an ordinary web app. A marketing team's workspace, with its own audiences and its own buttons.
+Today that means a data clean room. Six figures a year, and both companies upload their customer files to a third party. The measurement creates the risk.
 <break time="1.2s" />
-WebMCP lets it write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.
+Airlock is two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.
 <break time="1.2s" />
-So an agent operates the product directly, instead of reading the screen and guessing.
+WebMCP lets each app write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.
 <break time="1.2s" />
-But this question needs a second app, owned by another company, on another origin. Live on the right, in a cross-origin frame.
-<break time="1.2s" />
-A marketer asks in plain language. The agent cannot answer: the tool that crosses the boundary is not registered, so it is not in its list.
-<break time="1.2s" />
-That is the whole idea. A permission check can be argued past. A tool that does not exist cannot.
-<break time="1.2s" />
-Asking for the raw records is refused outright.
+Asking the publisher for the raw records is refused outright.
 <break time="1.2s" />
 So it asks for approval. A person decides, on each side.
 <break time="1.2s" />
