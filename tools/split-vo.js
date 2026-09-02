@@ -8,6 +8,9 @@ const { execFileSync, spawnSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+// ElevenLabs renders its break tags inconsistently -- three takes of the same voice at
+// the same settings needed 1.15s, 0.70s and 1.25s. Rather than make that a manual knob,
+// sweep for the threshold that yields exactly the number of beats the script has.
 const src = process.argv[2];
 const GAP = parseFloat(process.argv[3] || "1.15");   // silence long enough to count as a break
 const FLOOR = process.argv[4] || "-40dB";            // anything quieter counts as silence
@@ -40,7 +43,27 @@ for (let i = 0; i < starts.length; i++) {
 }
 if (cursor < total - 0.25) segs.push([cursor, total]);
 
-console.log(`${path.basename(src)}: ${total.toFixed(1)}s → ${segs.length} segments (expected ${EXPECTED})`);
+let chosen = GAP;
+if (segs.length !== EXPECTED && process.argv[3] === undefined) {
+  for (const g of [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.7]) {
+    const probe = spawnSync("ffmpeg", ["-hide_banner", "-i", src,
+      "-af", `silencedetect=noise=${FLOOR}:d=${g}`, "-f", "null", "-"],
+      { encoding: "utf8", maxBuffer: 1 << 26 });
+    const log2 = String(probe.stderr || "");
+    const st2 = [...log2.matchAll(/silence_start:\s*([\d.]+)/g)].map(m => +m[1]);
+    const en2 = [...log2.matchAll(/silence_end:\s*([\d.]+)/g)].map(m => +m[1]);
+    const out = []; let cur = en2.length && st2.length && en2[0] < st2[0] ? en2[0] : 0;
+    for (let i = 0; i < st2.length; i++) {
+      if (st2[i] > cur + 0.25) out.push([cur, st2[i]]);
+      cur = en2[i] ?? st2[i];
+    }
+    if (cur < total - 0.25) out.push([cur, total]);
+    if (out.length === EXPECTED) { segs.length = 0; segs.push(...out); chosen = g; break; }
+  }
+}
+
+console.log(`${path.basename(src)}: ${total.toFixed(1)}s → ${segs.length} segments (expected ${EXPECTED})`
+            + (chosen !== GAP ? `  [auto-tuned gap ${chosen}s]` : ""));
 if (segs.length !== EXPECTED) {
   console.log(`\nSegment count does not match the script.`);
   console.log(`Leave a clearer pause between lines, or retry with a different gap/floor:`);
