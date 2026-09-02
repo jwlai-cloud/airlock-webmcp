@@ -4,7 +4,9 @@
   "description": "Verification and capture harness for Airlock. The app itself is two dependency-free static HTML files; this is only the test rig.",
   "scripts": {
     "verify": "node tools/verify.js",
-    "capture": "node tools/capture.js"
+    "capture": "node tools/capture.js",
+    "verify:ui": "node tools/verify-ui.js",
+    "verify:llm": "node tools/verify-llm.js"
   },
   "devDependencies": { "playwright": "^1.62.1" }
 }
