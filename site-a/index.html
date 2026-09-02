@@ -468,7 +468,8 @@ tr:last-child td{border-bottom:0}
     </div>
     <div class="pane on" id=p-agent>
       <div class=railnote style="display:flex;justify-content:space-between;gap:8px;align-items:center">
-        <span>Assistant mode</span><span class="pill mute" id=railmode>fallback router · no model</span>
+        <span class="pill mute" id=railmode>fallback router · no model</span>
+        <button class=sm id=usekey style="padding:3px 10px">Use your own model</button>
       </div>
       <div class=railnote><b>Using a real agent?</b> Google's
         <a href="https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd" target=_blank rel=noopener>Model Context Tool Inspector</a>
@@ -497,6 +498,37 @@ tr:last-child td{border-bottom:0}
       <iframe id=f allow="tools" title="Meridian Media governance console"></iframe>
     </div>
   </aside>
+</div>
+
+<div id=kveil style="position:fixed;inset:0;background:rgba(10,16,15,.6);display:none;
+     place-items:center;z-index:60;padding:16px">
+  <div style="width:min(520px,96vw);background:var(--surface);border:1px solid var(--line);
+       border-radius:10px;box-shadow:0 26px 64px -20px rgba(0,0,0,.5);overflow:hidden">
+    <div class=mh style="padding:13px 16px;border-bottom:1px solid var(--line);font-weight:600">
+      Drive Airlock with your own model</div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:13px">
+      <div class=lead>Airlock registers plain WebMCP tools, so any agent can operate it.
+        Paste a Gemini key to watch a real model discover and call them.
+        <b>Entirely optional</b> — everything works without one.</div>
+      <label class=f>Gemini API key
+        <input type=password id=kkey placeholder="paste key" autocomplete=off></label>
+      <label class=f>Model
+        <input type=text id=kmodel placeholder="gemini-3.6-flash"></label>
+      <div class=quar>
+        <div class=qh>Where it goes</div>
+        <div class=qb>Into this browser's local storage, and to Google's API from this page.
+          Airlock has no server, so it never reaches us and is never written to the audit
+          trail. Remove it any time from Agent settings.</div>
+      </div>
+      <div class=lead style="font-size:.92em">Free key:
+        <a href="https://aistudio.google.com/apikey" target=_blank rel=noopener>aistudio.google.com/apikey</a></div>
+    </div>
+    <div class=mf style="padding:12px 16px;border-top:1px solid var(--line);display:flex;
+         gap:9px;justify-content:flex-end;background:var(--sunk)">
+      <button id=kno>Cancel</button>
+      <button class=primary id=kyes>Save and use it</button>
+    </div>
+  </div>
 </div>
 
 <div id=veil>
@@ -865,8 +897,9 @@ function syncKeyUI() {
   $("key-state").className = "pill " + (has ? "ok" : "mute");
   $("key-state").textContent = has ? "model connected" : "not configured";
   $("gmodel").placeholder = readModel();
-  $("railmode").textContent = has ? "Gemini · your key" : "fallback router · no model";
+  $("railmode").textContent = has ? "your model · " + readModel() : "fallback router · no model";
   $("railmode").className = "pill " + (has ? "ok" : "mute");
+  $("usekey").textContent = has ? "Change model" : "Use your own model";
 }
 $("gsave").onclick = () => {
   const k = $("gkey").value.trim();
@@ -879,6 +912,26 @@ $("gsave").onclick = () => {
   } catch { $("gnote").textContent = "This browser refused to store it (private mode?)."; }
   syncKeyUI();
 };
+$("usekey").onclick = () => {
+  $("kkey").value = ""; $("kmodel").value = "";
+  $("kveil").style.display = "grid";
+  $("kkey").focus();
+};
+$("kno").onclick = () => { $("kveil").style.display = "none"; };
+$("kyes").onclick = () => {
+  const k = $("kkey").value.trim();
+  if (!k) { $("kkey").focus(); return; }
+  try {
+    localStorage.setItem(KEY_STORE, k);
+    if ($("kmodel").value.trim()) localStorage.setItem(MODEL_STORE, $("kmodel").value.trim());
+  } catch { /* private mode: the page still works, just without a model */ }
+  $("kkey").value = "";
+  $("kveil").style.display = "none";
+  syncKeyUI();
+  say("a", "Using your model now. Ask me anything — I discover the tools with getTools() "
+    + "and call them with executeTool(), exactly as any other agent would.");
+};
+
 $("gclear").onclick = () => {
   try { localStorage.removeItem(KEY_STORE); } catch {}
   $("gnote").textContent = "Removed. Back to the no-model fallback.";
