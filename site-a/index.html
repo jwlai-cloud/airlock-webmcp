@@ -923,16 +923,20 @@ async function realAgent(q) {
     }
     const data = await res.json();
     const parts = data.candidates?.[0]?.content?.parts || [];
-    const calls = parts.filter(p => p.functionCall).map(p => p.functionCall);
+    const callParts = parts.filter(p => p.functionCall);
 
-    if (!calls.length) {
+    if (!callParts.length) {
       const text = parts.map(p => p.text).filter(Boolean).join(" ").trim();
       return say("a", text || "No answer came back.");
     }
-    contents.push({ role: "model", parts: calls.map(fc => ({ functionCall: fc })) });
+    // Echo the model's parts back unchanged. Gemini 3 attaches a thoughtSignature to
+    // the *part*, not to the functionCall inside it, and rejects the next turn with
+    // "Function call is missing a thought_signature" if it is rebuilt without one.
+    contents.push({ role: "model", parts: callParts });
 
     const responses = [];
-    for (const c of calls) {
+    for (const part of callParts) {
+      const c = part.functionCall;
       trace(`${c.name}(${JSON.stringify(c.args || {})})`);
       let result;
       try { result = await callOwn(c.name, c.args || {}); }

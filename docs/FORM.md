@@ -18,7 +18,7 @@ industry term: "Airlock — a data clean room in the browser" (42), or
 ## Elevator pitch
 
 ```
-Two companies measure their shared customers in the browser. Aggregates cross, customer records never do — and the tool that crosses doesn't exist until both sides approve.
+Find out how many customers you share with a partner, without either of you sending the other a single customer record. No clean room, no contract, no upload.
 ```
 
 *(172 characters)*
@@ -104,9 +104,12 @@ lists them.
 
 Upload in this order — the first is the gallery thumbnail:
 
-1. `docs/diagrams/airlock-architecture.png` — the system, both origins, what crosses
-2. `docs/diagrams/airlock-sequence.png` — the refusal, the two-sided approval, one analysis
-3. `docs/diagrams/airlock-defence.png` — the three gates an injection meets
+1. `docs/diagrams/airlock-thumbnail.png` — **the gallery thumbnail.** The real product
+   mid-analysis: the numbers, the quarantined injection, and the agent's tool calls.
+   A screenshot of the thing working is more credible than an illustration.
+2. `docs/diagrams/airlock-architecture.png` — the system, both origins, what crosses
+3. `docs/diagrams/airlock-sequence.png` — the refusal, the two-sided approval, one analysis
+4. `docs/diagrams/airlock-defence.png` — the three gates an injection meets
 
 ---
 

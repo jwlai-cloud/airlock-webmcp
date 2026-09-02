@@ -12,8 +12,8 @@ Paste-ready. Numbers here must match `docs/VIDEO-SCRIPT.md` and the README exact
 
 ## Elevator pitch (200 char limit)
 
-Two companies measure their shared customers in the browser. Aggregates cross, records
-never do — and the tool that crosses doesn't exist until both sides approve.
+Find out how many customers you share with a partner, without either of you sending the
+other a single customer record. No clean room, no contract, no upload.
 
 ---
 
