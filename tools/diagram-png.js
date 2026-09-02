@@ -4,7 +4,7 @@ const { chromium } = require("playwright");
 const path = require("path");
 (async () => {
   const browser = await chromium.launch();
-  for (const name of ["airlock-architecture", "airlock-sequence"]) {
+  for (const name of ["airlock-architecture", "airlock-sequence", "airlock-defence"]) {
     const page = await browser.newPage({ deviceScaleFactor: 2 });
     await page.goto("file://" + path.resolve(`docs/diagrams/${name}.html`),
                     { waitUntil: "networkidle" });

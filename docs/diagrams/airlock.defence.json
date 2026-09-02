@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Why the boundary holds",
+    "subtitle": "A prompt injection arrives from the partner and meets three gates — none of which trusts the model",
+    "output": "airlock-defence.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1290,
+      420
+    ],
+    "views": [
+      {
+        "id": "g1",
+        "label": "Gate 1 — existence",
+        "focus": [
+          "inject",
+          "gate1"
+        ],
+        "note": "The tool was never registered, so it is absent from the list the model was given."
+      },
+      {
+        "id": "g2",
+        "label": "Gate 2 — capability",
+        "focus": [
+          "gate2"
+        ],
+        "note": "No capability on the partner's side can emit a record, whatever the model believes."
+      },
+      {
+        "id": "g3",
+        "label": "Gate 3 — rendering",
+        "focus": [
+          "gate3",
+          "clean"
+        ],
+        "note": "Partner free text is rendered as text and never followed as an instruction."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "inject",
+      "type": "external",
+      "label": "Prompt injection",
+      "sublabel": "hidden in a partner segment note",
+      "pos": [
+        40,
+        150
+      ],
+      "size": [
+        190,
+        84
+      ],
+      "tag": "IGNORE ALL PREVIOUS INSTRUCTIONS"
+    },
+    {
+      "id": "gate1",
+      "type": "security",
+      "label": "Is the tool there?",
+      "sublabel": "getTools() never returned it",
+      "pos": [
+        290,
+        150
+      ],
+      "size": [
+        190,
+        84
+      ],
+      "tag": "nothing to call"
+    },
+    {
+      "id": "gate2",
+      "type": "security",
+      "label": "Can a tool emit a record?",
+      "sublabel": "export refuses; overlap returns counts",
+      "pos": [
+        540,
+        150
+      ],
+      "size": [
+        200,
+        84
+      ],
+      "tag": "no such branch"
+    },
+    {
+      "id": "gate3",
+      "type": "security",
+      "label": "Is the text executed?",
+      "sublabel": "textContent, shown quarantined",
+      "pos": [
+        800,
+        150
+      ],
+      "size": [
+        190,
+        84
+      ],
+      "tag": "data, not instructions"
+    },
+    {
+      "id": "clean",
+      "type": "database",
+      "label": "0 records cross",
+      "sublabel": "and every attempt is receipted",
+      "pos": [
+        1050,
+        150
+      ],
+      "size": [
+        180,
+        84
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "e1",
+      "from": "inject",
+      "to": "gate1",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e2",
+      "from": "gate1",
+      "to": "gate2",
+      "label": "still blocked",
+      "variant": "security",
+      "labelDy": -40
+    },
+    {
+      "id": "e3",
+      "from": "gate2",
+      "to": "gate3",
+      "label": "still blocked",
+      "variant": "security",
+      "labelDy": -40
+    },
+    {
+      "id": "e4",
+      "from": "gate3",
+      "to": "clean",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "What does not defend it",
+      "items": [
+        "Asking the model to be careful",
+        "A permission check the model can be argued past"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "What does",
+      "items": [
+        "The tool is absent — there is nothing to call",
+        "No capability on the other side can emit a record",
+        "Partner text is data, rendered as text"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Each gate holds alone",
+      "items": [
+        "Remove any two and the third still stops it",
+        "None of them trusts the model to behave"
+      ]
+    }
+  ]
+}
