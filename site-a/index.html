@@ -988,7 +988,7 @@ async function realAgent(q) {
   const key = readKey(), model = readModel();
   const contents = [{ role: "user", parts: [{ text: q }] }];
 
-  for (let turn = 0; turn < 6; turn++) {
+  for (let turn = 0, calls429 = 0; turn < 6 && calls429 < 4; turn++) {
     // Re-read the tools every turn: approval registers one mid-conversation.
     const tools = await document.modelContext.getTools();
     const body = {
@@ -1000,6 +1000,19 @@ async function realAgent(q) {
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
       { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": key },
         body: JSON.stringify(body) });
+    if (res.status === 429) {
+      // Free-tier keys are rate limited per minute and the API tells us how long to
+      // wait. Honour it rather than showing a visitor a raw quota error.
+      const body = await res.json().catch(() => ({}));
+      const hint = (body.error?.details || [])
+        .map(d => d.retryDelay).find(Boolean);
+      const wait = Math.min(30, parseInt(hint, 10) || 8);
+      if (turn === 0) say("a", `Rate limited by the model API — retrying in ${wait} seconds. `
+        + `Free-tier keys allow only a few requests a minute.`);
+      await new Promise(r => setTimeout(r, wait * 1000));
+      calls429++; turn--;   // a retry is not a turn
+      continue;                       // the loop re-reads the tools and tries again
+    }
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       throw new Error(`Gemini ${res.status}. ${detail.slice(0, 200)}`);
