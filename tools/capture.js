@@ -205,6 +205,10 @@ if (argv.includes("--list-voices")) {
 }
 
 (async () => {
+  // Hold the last finished cut across the wipe below.
+  const prevCut = path.join(OUT, "airlock-demo.mp4");
+  const stash = fs.existsSync(prevCut) ? fs.readFileSync(prevCut) : null;
+
   // "file" mode reuses an existing vo/ directory, so don't wipe it
   if (TTS === "file") {
     const missing = SCRIPT.map((_, i) => path.join(VO, String(i).padStart(2, "0") + ".wav"))
@@ -222,6 +226,11 @@ if (argv.includes("--list-voices")) {
     fs.rmSync(OUT, { recursive: true, force: true });
   }
   fs.mkdirSync(VO, { recursive: true });
+
+  // A render that fails part way leaves nothing behind, and it has already wiped the
+  // previous cut. Keep the last good one: re-recording costs four minutes, and losing
+  // the only finished video the day before a deadline costs rather more.
+  if (stash) fs.writeFileSync(path.join(OUT, "airlock-demo.previous.mp4"), stash);
 
   // ── 1. synthesise the narration and measure it ──────────────────────────
   // Cloud Text-to-Speech sounds markedly better than macOS `say`, but needs a project

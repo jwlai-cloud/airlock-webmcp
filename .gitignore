@@ -7,3 +7,6 @@ node_modules/
 # never commit credentials
 .env
 .env.*
+
+# keep the working video out of git; it is a build artefact
+.airlock-video/
