@@ -81,14 +81,17 @@ const SCRIPT = [
     vo: "Any agent can drive it. Paste a Gemini key and a real model takes over.",
     go: async (p, h) => { await h.awaitPaste(); }, extra: 0.2 },
 
-  { cap: "Real Gemini. getTools() to discover, executeTool() to call.",
-    vo: "Now a real model. getTools to see what the page offers, executeTool to invoke one.",
-    go: async (p, h) => { await h.ask("What audiences do we hold?"); } },
+  { cap: "getTools() to discover. executeTool() to call.",
+    vo: "getTools to see what the page offers, executeTool to invoke one.",
+    go: async (p, h) => { await h.setModel(false);   // router: keeps the budget for the beat below
+                          await h.ask("What audiences do we hold?"); } },
 
   { cap: "estimate_overlap was never registered. Nothing to call.",
     vo: "But it cannot measure the overlap. That tool was never registered, so getTools never returned it.",
-    go: async (p, h) => { await h.ask("How much does high lifetime value overlap with Meridian's sports fans?",
-                                      { allowModal: true }); }, extra: 0.2 },
+    go: async (p, h) => { await h.setModel(true);    // the live model hits the boundary here
+                          await h.ask("How much does high lifetime value overlap with Meridian's sports fans?",
+                                      { allowModal: true });
+                          await h.setModel(false); }, extra: 0.2 },
 
   { cap: "A permission check can be argued past. A missing tool cannot.",
     vo: "That is the idea. A permission check can be argued past. A missing tool cannot.",
@@ -161,10 +164,9 @@ const SCRIPT = [
                           await p.waitForTimeout(700); }, extra: 0.2 },
 
   // ---- the answer ----
-  { cap: "Real model again — 2,178 shared, 13,057 reachable, 0 records moved.",
+  { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "The model is back, and now it can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.",
     go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
-                          await h.setModel(true);
                           await h.ask("Now measure the overlap between high lifetime value and sports fans."); },
     extra: 0.4 },
 
@@ -401,11 +403,19 @@ if (argv.includes("--list-voices")) {
       process.exit(1);
     }
     await page.addInitScript(k => {
-      try { localStorage.setItem("airlock.gemini.key", k); } catch {}
+      try {
+        localStorage.setItem("airlock.gemini.key", k);
+        localStorage.removeItem("airlock.gemini.model");   // fall through to the page default
+      } catch {}
     }, key);
     console.log("recording with a live model (key never rendered to the page)");
   } else {
-    await page.addInitScript(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
+    await page.addInitScript(() => {
+    try {
+      localStorage.removeItem("airlock.gemini.key");
+      localStorage.removeItem("airlock.gemini.model");   // a stored model beats the page default
+    } catch {}
+  });
   }
   await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(),
                   { waitUntil: "networkidle" });
@@ -516,6 +526,7 @@ if (argv.includes("--list-voices")) {
   async function setModel(on) {
     await page.evaluate(([enable, k]) => {
       try {
+        localStorage.removeItem("airlock.gemini.model");
         if (enable && k) localStorage.setItem("airlock.gemini.key", k);
         else localStorage.removeItem("airlock.gemini.key");
       } catch {}

@@ -1,30 +1,32 @@
-narration: 24 lines, 2:17 spoken (your own recording)
-projected runtime 2:42 (spoken 2:17 + ~25s of picture)
-   0.4s  A marketer asks an agent about a partner's audience.
-   3.5s  getTools() to discover. executeTool() to call.
-   7.5s  estimate_overlap was never registered. Nothing to call.
-  13.5s  A permission check can be argued past. A missing tool cannot.
-  19.3s  Two companies. Neither may see the other's list.
-  26.3s  Two origins. Aggregates cross; records never do.
-  31.7s  WebMCP: a page declares what it can do.
-  36.9s  exposedTo names one origin. A third gets no denial.
-  45.4s  allow="tools" — the frame is how the crossing is permitted at all.
-  52.4s  getTools({fromOrigins}) · executeTool() · browser-mediated.
-  61.3s  The description is prompt, not documentation.
-  72.8s  One tool is a <form>. The browser writes its schema.
-  78.3s  Three published facts about this API were wrong.
-  93.2s  Asking for the records is refused outright.
-  97.9s  Approval is a business decision — one on each side.
- 102.4s  It crosses to the publisher's console as a WebMCP tool call.
- 108.4s  registerTool({signal}) · toolchange fires · watch the list.
- 113.3s  2,178 shared. 13,057 more reachable. Zero records moved.
- 119.0s  untrustedContentHint — but a hint enforces nothing.
- 126.1s  Too few people matched. Withheld, not rounded.
- 129.6s  25 automated checks, against the deployed pair.
- 138.6s  Three gates. None of them trusts the model.
- 144.1s  Abort the signal → the tool is unregistered → gone.
- 150.2s  A permission check can be argued past. A tool that does not exist cannot.
+narration: 25 lines, 2:19 spoken (your own recording)
+projected runtime 2:50 (spoken 2:19 + ~32s of picture)
+recording with a live model (key never rendered to the page)
+   0.3s  A marketer asks an agent about a partner's audience.
+   3.1s  Bring your own model — the key stays in your browser.
+   8.2s  getTools() to discover. executeTool() to call.
+  73.4s  estimate_overlap was never registered. Nothing to call.
+  79.6s  A permission check can be argued past. A missing tool cannot.
+  85.4s  Two companies. Neither may see the other's list.
+  92.5s  Two origins. Aggregates cross; records never do.
+  97.9s  WebMCP: a page declares what it can do.
+ 103.1s  exposedTo names one origin. A third gets no denial.
+ 111.6s  allow="tools" — the frame is how the crossing is permitted at all.
+ 118.6s  getTools({fromOrigins}) · executeTool() · browser-mediated.
+ 127.5s  The description is prompt, not documentation.
+ 139.1s  One tool is a <form>. The browser writes its schema.
+ 144.7s  Three published facts about this API were wrong.
+ 159.6s  Asking for the records is refused outright.
+ 162.5s  Approval is a business decision — one on each side.
+ 166.9s  It crosses to the publisher's console as a WebMCP tool call.
+ 173.0s  registerTool({signal}) · toolchange fires · watch the list.
+ 178.0s  2,178 shared. 13,057 more reachable. Zero records moved.
+ 181.2s  untrustedContentHint — but a hint enforces nothing.
+ 188.2s  Too few people matched. Withheld, not rounded.
+ 191.8s  25 automated checks, against the deployed pair.
+ 200.7s  Three gates. None of them trusts the model.
+ 206.2s  Abort the signal → the tool is unregistered → gone.
+ 212.3s  A permission check can be argued past. A tool that does not exist cannot.
 github.com/jwlai-cloud/airlock-webmcp
 
 /Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
-runtime 2:36  (limit 3:00)
+runtime 3:38  *** OVER 3:00 BUDGET ***
