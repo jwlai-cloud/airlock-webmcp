@@ -59,15 +59,15 @@ const SCRIPT = [
   // ---- COLD OPEN: the product working, and the whole argument, inside 15s ----
   { cap: "A marketer asks an agent about a partner's audience.",
     vo: "A marketer asks an agent how their customers overlap with a partner's audience.",
-    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(500); } },
+    go: async p => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(300); } },
 
   { cap: "It can't. That tool is not registered — getTools() never returns it.",
     vo: "It cannot answer. The tool that crosses the boundary is not registered, so it is not in the agent's tool list at all.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.2 },
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.1 },
 
   { cap: "A permission check can be argued past. A missing tool cannot.",
     vo: "That is Airlock, and that is the whole idea. A permission check is something a model can be argued past. A tool that does not exist is not.",
-    extra: 0.3 },
+    extra: 0.15 },
 
   // ---- why anyone needs this ----
   { cap: "Two companies. One question neither can answer.",
@@ -79,43 +79,43 @@ const SCRIPT = [
   // ---- it is an ordinary app with declared actions ----
   { cap: "Airlock is two ordinary web apps, on two different origins.",
     vo: "Airlock is two ordinary web apps on two different origins. An advertiser's workspace, and live on the right, the publisher's own console.",
-    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
-    extra: 0.2 },
+    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(300); },
+    extra: 0.1 },
 
   { cap: "WebMCP: each app declares what it can do.",
     vo: "WebMCP lets each app write down what it can do. List audiences. Request approval. Measure overlap. Each is the same function the buttons already call.",
-    go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(700); },
-    extra: 0.2 },
+    go: async p => { await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(350); },
+    extra: 0.1 },
 
   // ---- refusal two ----
   { cap: "Asking for the records directly is refused outright.",
     vo: "Asking the publisher for the raw records is refused outright.",
-    go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(400);
+    go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
                           await h.chip("Export Meridian's customer records"); } },
 
   // ---- approval ----
   { cap: "Approval is a business decision. A person makes it on each side.",
     vo: "So it asks for approval. A person decides, on each side.",
     go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
-                          await p.waitForSelector("#veil.on"); await p.waitForTimeout(500); } },
+                          await p.waitForSelector("#veil.on"); await p.waitForTimeout(300); } },
 
   { cap: "The request crosses to the publisher's console as a tool call.",
     vo: "The request crosses to the publisher's console as a tool call. Their officer decides independently.",
     go: async (p, h) => { await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
-                          await p.waitForTimeout(600); }, extra: 0.2 },
+                          await p.waitForTimeout(300); }, extra: 0.1 },
 
   { cap: "Two approvals → registerTool(). Watch the tool list.",
     vo: "Two approvals, and only now is the tool registered. Consent creates the capability.",
     go: async (p, h) => { await h.partner.locator("#byes").click();
-                          await p.waitForTimeout(700);
+                          await p.waitForTimeout(350);
                           await p.click('nav a[data-view="diag"]');
-                          await p.waitForTimeout(900); } },
+                          await p.waitForTimeout(350); } },
 
   // ---- the answer ----
   { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
     vo: "Same question, seconds later. Two thousand shared customers, thirteen thousand more reachable. Two counts crossed. Zero records moved.",
-    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.4 },
+    go: async (p, h) => { await h.chip("How much does high lifetime value overlap with sports fans?"); }, extra: 0.2 },
 
   // ---- injection ----
   { cap: "The publisher also returned free text — and it is an attack.",
@@ -123,13 +123,13 @@ const SCRIPT = [
 
   { cap: "Quarantined as text. Never followed as an instruction.",
     vo: "It is quarantined as text, never followed. And no tool over there can return a record anyway.",
-    extra: 0.2 },
+    extra: 0.1 },
 
   // ---- k-anonymity ----
   { cap: "Too few people matched. The number is withheld, not rounded.",
     vo: "Ask about a segment too thin to be safe, and the answer is withheld, not rounded.",
     go: async (p, h) => { await h.chip("Check luxury auto intenders"); await p.waitForTimeout(1600); },
-    extra: 0.15 },
+    extra: 0.07 },
 
   // ---- audit + exposedTo ----
   { cap: "Every crossing is on the record, for both companies.",
@@ -138,27 +138,27 @@ const SCRIPT = [
 
   { cap: "exposedTo: four capabilities to this origin, nothing else.",
     vo: "The publisher exposes four capabilities here and nothing else. A third origin would not get a denial — it would not learn they exist.",
-    go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(700); },
-    extra: 0.15 },
+    go: async p => { await p.click('nav a[data-view="partners"]'); await p.waitForTimeout(350); },
+    extra: 0.07 },
 
   { cap: "All of it: registerTool · exposedTo · getTools · executeTool.",
     vo: "That is the whole implementation. Registered with exposedTo, discovered with getTools, invoked with executeTool. Any agent drives it, and we ship no key.",
     go: async (p, h) => { await h.showDiagram("airlock-architecture.png"); },
-    extra: 0.4 },
+    extra: 0.2 },
 
   // ---- revocation ----
   { cap: "Withdraw approval → the signal aborts → the tool is gone.",
     vo: "And it is revocable. Withdraw approval and the tool is unregistered. Gone, not disabled.",
-    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(450);
-                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(400);
-                     await p.click("#btn-revoke"); await p.waitForTimeout(600);
+    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(250);
+                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
+                     await p.click("#btn-revoke"); await p.waitForTimeout(300);
                      await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(800); } },
 
   // ---- close ----
   { cap: "A permission check can be argued past. A tool that does not exist cannot.\ngithub.com/jwlai-cloud/airlock-webmcp",
     vo: "Two companies answered a question about their shared customers. Neither saw the other's data. No vendor sat in between. Airlock.",
-    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(600); },
-    extra: 0.7 }
+    go: async p => { await p.click('nav a[data-view="overview"]'); await p.waitForTimeout(300); },
+    extra: 0.35 }
 ];
 
 // `node tools/capture.js --estimate` prints what a render will cost before spending it.
@@ -309,7 +309,7 @@ if (argv.includes("--list-voices")) {
   // Roughly what the picture adds on top of speech: per-beat pad, the `extra` holds, the
   // UI actions, and the head and tail. Checked before recording so a long read is caught
   // in a second rather than after a three-minute render.
-  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + 17;
+  const overhead = SCRIPT.reduce((a, b) => a + 0.15 + (b.extra || 0), 0) + (A.startsWith('http://localhost') ? 17 : 34);   // deployed pairs pay real latency
   const projected = spoken + overhead;
   const mmss = t => `${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, "0")}`;
   console.log(`narration: ${clips.length} lines, ${mmss(spoken)} spoken `
@@ -333,15 +333,14 @@ if (argv.includes("--list-voices")) {
     recordVideo: { dir: OUT, size: { width: 1440, height: 810 } }
   });
   const page = ctx.pages()[0] || await ctx.newPage();
+  // The profile is shared with the test harnesses and verify-llm.js leaves a Gemini key
+  // in localStorage. A recording has to be deterministic, so clear it before the page
+  // script runs: with a key present every beat's timing would depend on someone else's
+  // server. Doing it in an init script avoids paying for a reload.
+  await page.addInitScript(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
   await page.goto(A + (A.includes("?") ? "&" : "?") + "v=" + Date.now(),
                   { waitUntil: "networkidle" });
-  // The profile is shared with the test harnesses, and verify-llm.js leaves a Gemini key
-  // in localStorage. A recording must be deterministic, so drive the no-model router:
-  // with a key present the page would route through a live model and every beat's timing
-  // would depend on someone else's server.
-  await page.evaluate(() => { try { localStorage.removeItem("airlock.gemini.key"); } catch {} });
-  await page.reload({ waitUntil: "networkidle" });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(350);
   await page.evaluate(() => {
     const bar = document.createElement("div");
     bar.id = "__cap";
@@ -376,7 +375,7 @@ if (argv.includes("--list-voices")) {
       document.getElementById("__diagimg").src = src;
       requestAnimationFrame(() => { el.style.opacity = "1"; });
     }, "data:image/png;base64," + b64);
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(300);
   }
   const hideDiagram = () => page.evaluate(() => {
     const el = document.getElementById("__diag");
@@ -386,7 +385,7 @@ if (argv.includes("--list-voices")) {
   // Recording against the deployed pair means every partner call is a real network
   // round trip, so a fixed delay after a click is a race: the next beat can fire while
   // the previous answer is still in flight. Wait for the assistant's reply instead.
-  async function chip(label, settle = 350) {
+  async function chip(label, settle = 150) {
     const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
     await page.click(`.chips button:text-is("${label}")`);
     await page.waitForFunction(
@@ -408,7 +407,7 @@ if (argv.includes("--list-voices")) {
     await page.waitForTimeout((clips[i].len + 0.15 + (b.extra || 0)) * 1000);
   }
   await page.evaluate(() => window.__cap(""));
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(800);
   const vid = page.video();
   await ctx.close();
   const raw = await vid.path();

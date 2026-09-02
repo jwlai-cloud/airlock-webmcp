@@ -487,8 +487,13 @@ tr:last-child td{border-bottom:0}
       </div>
     </div>
     <div class=pane id=p-partner>
-      <div class=railnote>Live view of Meridian's own console, running on a separate
-        origin in a cross-origin frame with <span class=mono>allow="tools"</span>.</div>
+      <div class=railnote>Meridian's own console — a <b>separate application on a separate
+        origin</b>, which in practice their governance officer would have open on their own
+        screen. It is embedded here because WebMCP only exposes cross-origin tools to
+        documents <b>in the same frame tree</b>: without the
+        <span class=mono>allow="tools"</span> frame, origin A could not reach origin B's
+        tools at all. <a id=blink href="#" target=_blank rel=noopener>Open it on its own
+        →</a></div>
       <iframe id=f allow="tools" title="Meridian Media governance console"></iframe>
     </div>
   </aside>
@@ -538,6 +543,7 @@ const B_URL = new URLSearchParams(location.search).get("b")
   || (LOCAL ? "http://localhost:8788/" : PARTNER_URL);
 const B_ORIGIN = new URL(B_URL, location.href).origin;
 $("f").src = B_URL + (B_URL.includes("?") ? "&" : "?") + "a=" + encodeURIComponent(location.origin);
+$("blink").href = B_URL;   // so a judge can confirm origin B is a real standalone app
 window.B_ORIGIN = B_ORIGIN;   // read by tools/verify.js when checking a deployed pair
 
 const K = 250;
