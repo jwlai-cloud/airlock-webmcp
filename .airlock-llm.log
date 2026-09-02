@@ -3,15 +3,13 @@
 > node tools/verify-llm.js --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
 
 PASS  the page switches to the model path once a key is saved
-        Gemini · your key
+        your model · gemini-3.6-flash
 FAIL  model answers using list_cohorts
-        That failed: Gemini 400. {
-  "error": {
-    "code": 400,
-    "message": "Invalid JSON payload received. Unknown name \"const\" at 'tools[0].function_declaration
-FAIL  a tool call is visible in the transcript
-        (none)
+        I can measure how your customers overlap with Meridian's audiences. Nothing you ask me can move a customer record between the two companies. If your browser has
+PASS  a tool call is visible in the transcript
+        tool · list_cohorts({})
 PASS  model did NOT call estimate_overlap before approval
+        tool · list_cohorts({}) | tool · check_segment_reach({"segment":"sports-fans"})
 /Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/verify-llm.js:94
   const said = await lastReply();
                ^

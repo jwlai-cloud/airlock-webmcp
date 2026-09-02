@@ -109,8 +109,9 @@ const SCRIPT = [
   // ---- approval ----
   { cap: "Approval is a business decision. A person makes it on each side.",
     vo: "So it asks for approval. A person decides, on each side.",
-    go: async (p, h) => { await h.chip("Request approval to measure incremental reach");
-                          await p.waitForSelector("#veil.on"); await p.waitForTimeout(300); } },
+    go: async (p, h) => { await h.chip("Request approval to measure incremental reach",
+                                       { waitFor: "modal" });
+                          await p.waitForTimeout(300); } },
 
   { cap: "The request crosses to the publisher's console as a tool call.",
     vo: "The request crosses to the publisher's console as a tool call. Their officer decides independently.",
@@ -408,13 +409,20 @@ if (argv.includes("--list-voices")) {
   // Recording against the deployed pair means every partner call is a real network
   // round trip, so a fixed delay after a click is a race: the next beat can fire while
   // the previous answer is still in flight. Wait for the assistant's reply instead.
-  async function chip(label, settle = 150) {
+  // `waitFor` picks what "done" means. Most prompts end in an assistant reply, but the
+  // approval prompt deliberately blocks on a dialog and produces no reply until someone
+  // decides -- waiting for one there burns the whole timeout as dead air on camera.
+  async function chip(label, { waitFor = "reply", settle = 150 } = {}) {
     const budget = WITH_KEY ? 60000 : 20000;   // a model turn is slower than a function call
     const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
     await page.click(`.chips button:text-is("${label}")`);
-    await page.waitForFunction(
-      n => document.querySelectorAll("#chat .msg.a").length > n, before, { timeout: budget }
-    ).catch(() => {});                 // a beat that never answers still gets filmed
+    if (waitFor === "modal") {
+      await page.waitForSelector("#veil.on", { timeout: budget }).catch(() => {});
+    } else {
+      await page.waitForFunction(
+        n => document.querySelectorAll("#chat .msg.a").length > n, before, { timeout: budget }
+      ).catch(() => {});               // a beat that never answers still gets filmed
+    }
     await page.waitForTimeout(settle);
   }
 
