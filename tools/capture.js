@@ -80,7 +80,9 @@ const FULL_SCRIPT = [
   { liveOnly: true,
     cap: "Bring your own model — the key stays in your browser.",
     vo: "Any agent can drive it. Paste a Gemini key and a real model takes over.",
-    go: async (p, h) => { await h.awaitPaste(); await h.setModel(false);
+    // The key has just been pasted on camera, and the line says a real model takes over.
+    // So it does: this first question runs on the model too, not the router.
+    go: async (p, h) => { await h.awaitPaste(); await h.setModel(true);
                           h.startAsk("What audiences do we hold?"); }, extra: 0.2 },
 
   { liveOnly: true,
@@ -516,7 +518,10 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
   // approval prompt deliberately blocks on a dialog and produces no reply until someone
   // decides -- waiting for one there burns the whole timeout as dead air on camera.
   async function chip(label, { waitFor = "reply", settle = 150 } = {}) {
-    const budget = WITH_KEY ? 60000 : 20000;   // a model turn is slower than a function call
+    // Waiting costs the take nothing: the excision pass cuts dead stretches out of the
+    // picture afterwards, so a slow model turn -- or a 503 backoff inside it -- shortens
+    // no beat. Budget for the retries rather than filming a half-finished answer.
+    const budget = WITH_KEY ? 240000 : 20000;
     await pace();                              // no-op unless this beat is model-driven
     const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
     await page.click(`.chips button:text-is("${label}")`);
@@ -538,11 +543,11 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
     await page.click("#send");
     const done = page.waitForFunction(
       n => document.querySelectorAll("#chat .msg.a").length > n, before,
-      { timeout: WITH_KEY ? 60000 : 20000 });
+      { timeout: WITH_KEY ? 240000 : 20000 });
     if (allowModal) {
       // a capable model may reach for approval on its own, which blocks on a dialog
       await Promise.race([done.catch(() => {}),
-        page.waitForSelector("#veil.on", { timeout: 60000 }).catch(() => {})]);
+        page.waitForSelector("#veil.on", { timeout: 240000 }).catch(() => {})]);
     } else { await done.catch(() => {}); }
     await page.waitForTimeout(200);
   }
