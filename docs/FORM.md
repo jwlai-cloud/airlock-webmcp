@@ -109,7 +109,7 @@ VERIFY IT YOURSELF
   git clone https://github.com/jwlai-cloud/airlock-webmcp && npm install
   npm run verify -- --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
   npm run verify:ui -- --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
-23 checks of the WebMCP surface and 12 of the keyless UI path, both against the
+25 checks of the WebMCP surface and 12 of the keyless UI path, both against the
 deployed pair rather than a local copy.
 
 All data is synthetic. k-anonymity at k=250, which is not differential privacy —
@@ -187,7 +187,7 @@ was established there.
 Tested end to end:
 - An automated Playwright harness (tools/verify.js) driving the same calls an
   agent makes — getTools({fromOrigins}) and executeTool() across the origin
-  boundary. 23 checks, run against both the local pair and the deployed HTTPS
+  boundary. 25 checks, run against both the local pair and the deployed HTTPS
   pair.
 - The in-page assistant, a deterministic router with no model, exercised by
   tools/verify-ui.js the way a visitor without an API key uses it: 12 checks,

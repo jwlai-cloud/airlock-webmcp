@@ -132,7 +132,7 @@ top of `site-a/index.html` to wherever origin B lands.
 
 ```bash
 npm install          # playwright only; the app itself has no dependencies
-npm run verify       # 19 checks against real Chrome
+npm run verify       # 25 checks against real Chrome
 npm run capture      # re-records the demo video
 ```
 
