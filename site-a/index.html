@@ -300,8 +300,8 @@ tr:last-child td{border-bottom:0}
                 <p class=lead>Airlock registers plain WebMCP tools, so <b>any</b> agent can
                   operate it. The quickest way to see that is Google's own
                   <a href="https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd" target=_blank rel=noopener>Model Context Tool Inspector</a>
-                  extension, whose agent chat runs
-                  <span class=mono>gemini-3-flash-preview</span>. Ask it in your own words:</p>
+                  extension, whose agent chat runs Google's own model. Ask it in your own
+                  words:</p>
                 <div class=quote>“How much does our high lifetime value audience overlap with
                   Meridian's sports fans?”</div>
                 <p class=lead>Before approval it will tell you no such tool exists, because
@@ -409,8 +409,8 @@ tr:last-child td{border-bottom:0}
             <div class=stack>
               <p class=lead>Airlock has no backend and ships no API key. It registers plain
                 WebMCP tools, and any agent can drive them.</p>
-              <p class=lead><b>Chrome's built-in agent</b> needs nothing here — it runs
-                <span class=mono>gemini-3-flash-preview</span> and finds these tools by itself.
+              <p class=lead><b>Chrome's built-in agent</b> needs nothing here — it brings its
+                own model and finds these tools by itself.
                 If you would rather watch a model reason over them in this panel, paste your
                 own Gemini API key below.</p>
               <div class=row>
@@ -473,8 +473,7 @@ tr:last-child td{border-bottom:0}
       </div>
       <div class=railnote><b>Using a real agent?</b> Google's
         <a href="https://chromewebstore.google.com/detail/model-context-tool-inspec/gbpdfapgefenggkahomfgkhfehlcenpd" target=_blank rel=noopener>Model Context Tool Inspector</a>
-        extension runs <span class=mono>gemini-3-flash-preview</span> and discovers these
-        same tools by itself. The assistant below is a fallback for browsers without an
+        extension brings its own model and discovers these same tools by itself. The assistant below is a fallback for browsers without an
         agent: a deterministic router, no model, calling the identical
         <span class=mono>getTools()</span> and <span class=mono>executeTool()</span>.</div>
       <div class=chat id=chat></div>
