@@ -24,6 +24,9 @@ const WITH_KEY = argv.includes("--with-key");
 // runs, with their own AI Studio key -- is exactly what is in the repo.
 const VERTEX = arg("--vertex", "");
 const VERTEX_LOC = arg("--vertex-location", "global");
+// gcloud's active account is shared state -- logging in elsewhere silently repoints it,
+// and the take then records 403s in the transcript. Pin the account for the token.
+const VERTEX_ACCOUNT = arg("--vertex-account", process.env.VERTEX_ACCOUNT || "");
 const TEMPO = parseFloat(arg("--tempo", "1"));   // atempo preserves pitch; 1.05-1.10 is inaudible
 function readEnvKey() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
@@ -468,7 +471,21 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
   // dependent on someone else's server. With --with-key, set it instead -- written
   // directly to storage before the page script runs, so it never reaches the DOM.
   if (VERTEX) {
-    const token = sh("gcloud", ["auth", "print-access-token"]).trim();
+    const token = sh("gcloud", ["auth", "print-access-token"]
+      .concat(VERTEX_ACCOUNT ? ["--account", VERTEX_ACCOUNT] : [])).trim();
+    // gcloud's active account is shared state: a login anywhere else repoints it, and
+    // the take then films a transcript full of 403s. Check the token before recording.
+    const probe = await fetch(`https://aiplatform.googleapis.com/v1/projects/${VERTEX}`
+      + `/locations/${VERTEX_LOC}/publishers/google/models/gemini-2.5-flash:generateContent`,
+      { method: "POST", headers: { "Content-Type": "application/json",
+                                   Authorization: "Bearer " + token },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: "ok" }] }] }) });
+    if (!probe.ok) {
+      console.error(`Vertex rejected the token with ${probe.status} `
+        + (VERTEX_ACCOUNT ? `for ${VERTEX_ACCOUNT}` : "for gcloud's active account")
+        + `. Pass --vertex-account <email> for an account with access to ${VERTEX}.`);
+      process.exit(1);
+    }
     await page.addInitScript(([tok, proj, loc]) => {
       const host = loc === "global" ? "aiplatform.googleapis.com"
                                     : `${loc}-aiplatform.googleapis.com`;
