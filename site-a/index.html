@@ -988,7 +988,9 @@ async function realAgent(q) {
   const key = readKey(), model = readModel();
   const contents = [{ role: "user", parts: [{ text: q }] }];
 
-  for (let turn = 0, retries = 0; turn < 6 && retries < 6; turn++) {
+  // Six turns was too tight: the overlap question alone is list_cohorts, then
+  // check_segment_reach, then estimate_overlap, and a refusal costs a turn of its own.
+  for (let turn = 0, retries = 0; turn < 9 && retries < 6; turn++) {
     // Re-read the tools every turn: approval registers one mid-conversation.
     const tools = await document.modelContext.getTools();
     const body = {

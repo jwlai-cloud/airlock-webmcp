@@ -596,8 +596,10 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
   // Each model name is its own quota bucket -- 5 rpm and 20 requests a day apiece --
   // so the pool is the budget. Flash-lite names are deliberately absent: they 404 when
   // the request carries tools, which is every request this demo makes.
+  // gemini-2.5-flash and every flash-lite name 404 when the request carries tools,
+  // which is every request this demo makes. Only names proven to take a tool call.
   const MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash",
-                  "gemini-3.5-flash", "gemini-3-flash-preview", "gemini-2.5-flash"];
+                  "gemini-3.5-flash", "gemini-3-flash-preview"];
   const WINDOW = 64000;
   const lastUse = new Map(MODELS.map(m => [m, 0]));
 
@@ -631,7 +633,7 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
     const n = await page.evaluate(() => {
       let k = 0;
       document.querySelectorAll("#chat .msg.a").forEach(el => {
-        if (/^Rate limited by the model API/.test(el.textContent || "")) { el.remove(); k++; }
+        if (/^(Rate limited by the model API|The model is busy)/.test(el.textContent || "")) { el.remove(); k++; }
       });
       return k;
     });
