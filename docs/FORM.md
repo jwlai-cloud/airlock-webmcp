@@ -96,10 +96,14 @@ Nothing here is scripted for a particular client, so any WebMCP agent works.
       overlap with Meridian's sports fans?" Before approval it will tell you no
       such tool exists, because none does.
 
-  (b) Your own Gemini API key, under "Agent settings". It is kept in your
-      browser's localStorage and sent only to Google. Airlock has no backend and
-      ships no key, so it never reaches us. Entirely optional — the steps above
-      prove the same thing without it.
+  (b) Your own Gemini API key — the "Use your own model" button at the top of
+      the assistant panel. It is kept in your browser's localStorage and sent
+      only to Google. Airlock has no backend and ships no key, so it never
+      reaches us. Entirely optional — the steps above prove the same thing
+      without it.
+      Note: free-tier keys allow only a few requests a minute. If you ask
+      several questions quickly the page will say it is retrying and wait;
+      that is the API's limit, not the app stalling.
 
 VERIFY IT YOURSELF
   git clone https://github.com/jwlai-cloud/airlock-webmcp && npm install
@@ -118,7 +122,7 @@ said plainly in the README rather than overclaimed.
 (paste the YouTube URL — must be PUBLIC, not unlisted)
 ```
 
-Local file: `.airlock-video/airlock-demo.mp4` — 2:35, 1920×1080, H.264 + AAC.
+Local file: `.airlock-cuts/truthful-221.mp4` — 2:21, 1920×1080, H.264 + AAC.
 
 ---
 

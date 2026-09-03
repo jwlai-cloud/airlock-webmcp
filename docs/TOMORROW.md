@@ -1,75 +1,61 @@
-# Where this stands, and what is left
+# The live-model cut — what is actually wrong, and the window to fix it
 
-Deadline: **2026-09-03, 1:00 PM PT.**
+## The finding that cost two renders
 
-## The video
+A prompt is not a request. One tool-calling turn is a loop of four or five API
+calls, and the free tier allows **five per minute and twenty per day, per model
+name**. So a single question can exhaust its own model's minute, and about four
+questions exhaust its whole day.
 
-Two cuts exist. Both are compliant; they differ in whether a live model appears.
+Two consequences, both of which I got wrong first:
 
-| File | Runtime | Driven by | State |
-|---|---|---|---|
-| `/tmp/airlock-router-clean.mp4` | 2:35 | deterministic router | **scanned clean, uploadable** |
-| `.airlock-video/airlock-demo.mp4` | varies | one live-model beat | last attempt unverified |
+- **Pacing between questions does nothing.** The 429s came from the suggestion
+  chips, which ran unpaced on whatever model was last set. Pacing now runs inside
+  `pace()`, called by both `ask()` and `chip()`.
+- **The model pool is the budget.** Six model names is six daily buckets.
+  Flash-lite names are excluded: they 404 when the request carries tools.
 
-The router cut is the safe deliverable. Copy it into place with:
+## The second finding
 
-```bash
-cp /tmp/airlock-router-clean.mp4 .airlock-video/airlock-demo.mp4
-```
+An earlier contact sheet appeared to show a live model calling
+`request_partner_consent`. It did not — those beats ran with `setModel(false)`,
+so what the sheet showed was the deterministic router. There is still no
+evidence either way about whether a live model reaches for approval on its own,
+because every attempt so far has been rate-limited before it got the chance.
+`tools/probe-approval.js` answers that question for one prompt's worth of quota.
 
-## Why the live-model version keeps failing
+## The window
 
-Every Gemini model that supports function calling is capped at **5 requests per
-minute** on the free tier. One `ask()` costs two or more, so a scripted demo making
-several calls in quick succession trips the cap and sits through 30-second retries —
-that is what produced a 5:55 render.
-
-The higher-limit models (`gemini-3.1-flash-lite`, `gemini-3.5-flash-lite`: 15 RPM,
-500/day) **return 404 when `tools` is present**. They cannot drive this at all.
-
-So a live model in the recording is possible but fragile, and it is worth remembering
-that the app itself demonstrates it far better: a judge pastes their own key and watches
-real Gemini call real tools. That path is verified working on the deployed site.
-
-## To try the live-model cut tomorrow
-
-Daily caps reset at midnight Pacific. Do not spend requests testing first.
+Daily caps reset at **midnight Pacific**. Do not spend requests testing before
+then — a probe costs the same bucket as a beat.
 
 ```bash
 export $(grep -E '^GEMINI_API_KEY=' .env | xargs)
+
+# 1. one prompt: does a live model open the consent modal at all?
+node tools/probe-approval.js gemini-3.8-flash
+
+# 2. only if that says MODAL OPENED: true
 node tools/capture.js --tts file --with-key --tempo 1.08 \
   --base https://jwlai-cloud.github.io/airlock-webmcp/site-a/
 ```
 
-Then **scan the whole timeline before trusting it** — twice a render has looked fine by
-duration and codec while showing rate-limit notices on screen:
+The render now reports `no rate limiting during the take` or the count it hit, so
+the log answers the question the duration never could.
+
+## Then look at every frame, not the duration
+
+Twice a render passed on duration and codec while showing rate-limit notices on
+screen. `tools/scan-cut.sh` builds a contact sheet of the assistant rail across
+the whole timeline:
 
 ```bash
-for t in $(seq 6 7 165); do
-  ffmpeg -y -loglevel error -ss $t -i .airlock-video/airlock-demo.mp4 \
-    -frames:v 1 /tmp/scan/f$(printf %03d $t).png
-done
+tools/scan-cut.sh .airlock-video/airlock-demo.mp4 /tmp/scan.png
 ```
 
-If it fights the limit again, ship the router cut. It says nothing untrue and loses only
-the on-camera model.
+## The fallback
 
-## Everything else is done
-
-- Live pair: `jwlai-cloud.github.io` + `rawcdn.githack.com`, **25 + 12 checks passing**
-- Repo public, MIT, all work pushed
-- `docs/FORM.md` — every Devpost field paste-ready
-- `docs/SUBMISSION.md` — the four required questions
-- Four gallery images in `docs/diagrams/`, two slides in `docs/slides/`
-- Narration: 25 clips backed up at `/tmp/vo-full-backup`
-
-## Four fields only you can fill
-
-Country of residence · submitter type (individual vs. organisation — a real ownership
-decision) · the two learning questions.
-
-## Before submitting
-
-- [ ] Watch the final cut end to end **with sound**
-- [ ] YouTube upload is **public**, not unlisted
-- [ ] `docs/FORM.md` runtime matches the cut you upload
+`.airlock-cuts/router-232.mp4` (2:32) is verified clean. It says nothing untrue
+and loses only the on-camera model — the app itself still demonstrates the live
+path better than any recording, because a judge pastes their own key and watches
+real Gemini call real tools.

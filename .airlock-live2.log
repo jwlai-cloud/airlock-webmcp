@@ -1,0 +1,64 @@
+narration: 25 lines, 2:23 spoken (your own recording)
+projected runtime 2:54 (spoken 2:23 + ~32s of picture)
+recording with a live model (key never rendered to the page)
+   0.4s  A marketer asks an agent about a partner's audience.
+   4.8s  Bring your own model — the key stays in your browser.
+  10.6s  Real Gemini. getTools() to discover, executeTool() to call.
+  30.8s  estimate_overlap was never registered. Nothing to call.
+  37.0s  A permission check can be argued past. A missing tool cannot.
+  44.4s  Two companies. Neither may see the other's list.
+  53.0s  Two origins. Aggregates cross; records never do.
+  58.6s  WebMCP: a page declares what it can do.
+  63.8s  exposedTo names one origin. A third gets no denial.
+  72.4s  allow="tools" — the frame is how the crossing is permitted at all.
+  79.4s  getTools({fromOrigins}) · executeTool() · browser-mediated.
+  88.5s  The description is prompt, not documentation.
+ 100.1s  One tool is a <form>. The browser writes its schema.
+ 106.1s  Three published facts about this API were wrong.
+ 124.1s  Asking for the records is refused outright.
+ 187.0s  Approval is a business decision — one on each side.
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('#myes')[22m
+[2m    - locator resolved to <button id="myes" class="primary">Authorise</button>[22m
+[2m  - attempting click action[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m    - waiting 20ms[22m
+[2m    2 × waiting for element to be visible, enabled and stable[22m
+[2m      - element is not visible[22m
+[2m    - retrying click action[22m
+[2m      - waiting 100ms[22m
+[2m    57 × waiting for element to be visible, enabled and stable[22m
+[2m       - element is not visible[22m
+[2m     - retrying click action[22m
+[2m       - waiting 500ms[22m
+
+    at Object.go (/Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/capture.js:156:35)
+    at /Users/junwei.lai/Projects/Agent/airlock-webmcp/tools/capture.js:610:23 {
+  log: [
+    "  - waiting for locator('#myes')",
+    '    - locator resolved to <button id="myes" class="primary">Authorise</button>',
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not visible',
+    '    - retrying click action',
+    '      - waiting 100ms',
+    '    57 × waiting for element to be visible, enabled and stable',
+    '       - element is not visible',
+    '     - retrying click action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.22.3

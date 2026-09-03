@@ -1,0 +1,30 @@
+keyless take: dropping 3 beats that claim a live model
+narration: 22 lines, 2:08 spoken (your own recording)
+projected runtime 2:33 (spoken 2:08 + ~25s of picture)
+   0.4s  A marketer asks an agent about a partner's audience.
+   4.6s  estimate_overlap was never registered. Nothing to call.
+  10.6s  A permission check can be argued past. A missing tool cannot.
+  16.2s  Two companies. Neither may see the other's list.
+  23.3s  Two origins. Aggregates cross; records never do.
+  30.3s  WebMCP: a page declares what it can do.
+  35.5s  exposedTo names one origin. A third gets no denial.
+  44.0s  allow="tools" — the frame is how the crossing is permitted at all.
+  51.0s  getTools({fromOrigins}) · executeTool() · browser-mediated.
+  59.9s  The description is prompt, not documentation.
+  71.4s  One tool is a <form>. The browser writes its schema.
+  76.9s  Three published facts about this API were wrong.
+  92.9s  Asking for the records is refused outright.
+  96.0s  Approval is a business decision — one on each side.
+ 100.8s  It crosses to the publisher's console as a WebMCP tool call.
+ 106.9s  registerTool({signal}) · toolchange fires · watch the list.
+ 112.1s  untrustedContentHint — but a hint enforces nothing.
+ 119.2s  Too few people matched. Withheld, not rounded.
+ 122.8s  25 automated checks, against the deployed pair.
+ 132.0s  Three gates. None of them trusts the model.
+ 137.1s  Abort the signal → the tool is unregistered → gone.
+ 143.3s  A permission check can be argued past. A tool that does not exist cannot.
+github.com/jwlai-cloud/airlock-webmcp
+cutting 7 dead stretches, 8.2s total
+
+/Users/junwei.lai/Projects/Agent/airlock-webmcp/.airlock-video/airlock-demo.mp4
+runtime 2:21  (limit 3:00)

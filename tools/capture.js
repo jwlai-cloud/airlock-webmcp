@@ -69,7 +69,7 @@ const dur = f => parseFloat(sh("ffprobe",
    `cap` is burned into the picture so the cut reads with the sound off. `vo` is
    read aloud over it. `go` runs before the caption appears. `extra` adds hold on
    top of the spoken length, for beats where the screen needs longer than the line. */
-const SCRIPT = [
+const FULL_SCRIPT = [
   // ---- COLD OPEN: a real model, calling real tools, hitting the boundary ----
   { cap: "A marketer asks an agent about a partner's audience.",
     vo: "How much do our customers overlap with a partner's?",
@@ -77,13 +77,15 @@ const SCRIPT = [
                           await p.waitForTimeout(200);
                           if (WITH_KEY) h.startPasteKey(); } },
 
-  { cap: "Bring your own model — the key stays in your browser.",
+  { liveOnly: true,
+    cap: "Bring your own model — the key stays in your browser.",
     vo: "Any agent can drive it. Paste a Gemini key and a real model takes over.",
     go: async (p, h) => { await h.awaitPaste(); await h.setModel(false);
                           h.startAsk("What audiences do we hold?"); }, extra: 0.2 },
 
-  { cap: "getTools() to discover. executeTool() to call.",
-    vo: "getTools to see what the page offers, executeTool to invoke one.",
+  { liveOnly: true,
+    cap: "Real Gemini. getTools() to discover, executeTool() to call.",
+    vo: "Now a real model. getTools to see what the page offers, executeTool to invoke one.",
     go: async (p, h) => { await h.awaitAsk();          // started under the previous beat
                           await h.setModel(true);      // live model hits the boundary next
                           h.startAsk("How much does high lifetime value overlap with Meridian's sports fans?",
@@ -91,7 +93,7 @@ const SCRIPT = [
 
   { cap: "estimate_overlap was never registered. Nothing to call.",
     vo: "But it cannot measure the overlap. That tool was never registered, so getTools never returned it.",
-    go: async (p, h) => { await h.awaitAsk(); await h.setModel(false); }, extra: 0.2 },
+    go: async (p, h) => { await h.awaitAsk(); }, extra: 0.2 },
 
   { cap: "A permission check can be argued past. A missing tool cannot.",
     vo: "That is the idea. A permission check can be argued past. A missing tool cannot.",
@@ -100,7 +102,7 @@ const SCRIPT = [
   // ---- why it matters ----
   { cap: "Two companies. Neither may see the other's list.",
     vo: "Two companies share customers and cannot say how many. Today that means a clean room, and both upload their files.",
-    go: async (p, h) => { await h.dismissModal(); await h.setModel(false);
+    go: async (p, h) => { await h.dismissModal();
                           await p.click('nav a[data-view="overview"]');
                           await p.waitForTimeout(300); }, extra: 0.2 },
 
@@ -140,8 +142,9 @@ const SCRIPT = [
 
   { cap: "Asking for the records is refused outright.",
     vo: "Ask for the raw records and it refuses.",
-    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(300);
-                          await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
+    go: async (p, h) => { await h.hideDiagram(); await h.setModel(true);   // live model all the way
+                          await p.waitForTimeout(250);
+                          await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(200);
                           await h.chip("Export Meridian's customer records"); } },
 
   // ---- approval ----
@@ -152,22 +155,31 @@ const SCRIPT = [
 
   { cap: "It crosses to the publisher's console as a WebMCP tool call.",
     vo: "That crosses to their console as a WebMCP tool call. Their officer decides.",
-    go: async (p, h) => { await p.click("#myes");
+    go: async (p, h) => { if (!await p.isVisible("#veil.on").catch(() => false)) {
+                            console.log("  !! approval modal never opened -- the model did not "
+                                      + "call request_partner_consent (quota, or it answered in prose)");
+                            return;                     // film the miss, do not kill the render
+                          }
+                          await p.click("#myes");
                           await h.partner.locator("#bveil.on").waitFor();
                           await p.waitForTimeout(300); } },
 
   { cap: "registerTool({signal}) · toolchange fires · watch the list.",
     vo: "Two approvals, and only now does registerTool run, bound to an AbortController.",
-    go: async (p, h) => { await h.partner.locator("#byes").click();
+    go: async (p, h) => { if (await h.partner.locator("#bveil.on").isVisible().catch(() => false))
+                            await h.partner.locator("#byes").click();
                           await p.waitForTimeout(500);
                           await p.click('nav a[data-view="diag"]');
                           await p.waitForTimeout(700); }, extra: 0.2 },
 
   // ---- the answer ----
-  { cap: "2,178 shared. 13,057 more reachable. Zero records moved.",
+  { liveOnly: true,
+    cap: "Live model — 2,178 shared, 13,057 reachable, 0 moved.",
     vo: "The model is back, and now it can answer. Two thousand shared, thirteen thousand more reachable. Zero records moved.",
     go: async (p, h) => { await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
-                          await h.ask("Now measure the overlap between high lifetime value and sports fans."); },
+                          await h.setModel(true);
+                          h.startAsk("Now measure the overlap between high lifetime value and sports fans.");
+                          await h.awaitAsk(); },
     extra: 0.4 },
 
   // ---- injection ----
@@ -177,7 +189,8 @@ const SCRIPT = [
 
   { cap: "Too few people matched. Withheld, not rounded.",
     vo: "A segment too thin to be safe is withheld, not rounded.",
-    go: async (p, h) => { await h.chip("Check luxury auto intenders"); } },
+    go: async (p, h) => { await h.setModel(true);
+                          await h.chip("Check luxury auto intenders"); } },
 
   // ---- SLIDE: the defence ----
   { cap: "25 automated checks, against the deployed pair.",
@@ -236,6 +249,35 @@ if (argv.includes("--list-voices")) {
   process.exit(0);
 }
 
+// Some lines assert that a live model is driving. Without --with-key the rail badge
+// reads "fallback router - no model", so those lines would be contradicted by the very
+// frame they play over. Drop them rather than narrate something the picture denies.
+// vo/NN.wav is named by position in FULL_SCRIPT, so each surviving beat carries the
+// index its clip was recorded under.
+// A dropped beat still owns work the rest of the take depends on -- it is the beat that
+// asks the first question. Losing the line must not lose the action, so a dropped go()
+// runs at the head of the next surviving beat instead.
+const SCRIPT = (() => {
+  const out = [];
+  let pending = [];
+  FULL_SCRIPT.forEach((b, i) => {
+    if (!WITH_KEY && b.liveOnly) { if (b.go) pending.push(b.go); return; }
+    const carried = pending; pending = [];
+    const own = b.go;
+    out.push({ ...b, voIdx: i,
+      go: (carried.length || own)
+        ? async (p, h) => { for (const g of carried) await g(p, h); if (own) await own(p, h); }
+        : undefined });
+  });
+  if (pending.length) {                       // trailing drops: nothing left to carry onto
+    const last = out[out.length - 1], own = last.go;
+    last.go = async (p, h) => { if (own) await own(p, h); for (const g of pending) await g(p, h); };
+  }
+  return out;
+})();
+if (SCRIPT.length !== FULL_SCRIPT.length)
+  console.log(`keyless take: dropping ${FULL_SCRIPT.length - SCRIPT.length} beats that claim a live model`);
+
 (async () => {
   // Hold the last finished cut across the wipe below.
   const prevCut = path.join(OUT, "airlock-demo.mp4");
@@ -243,7 +285,7 @@ if (argv.includes("--list-voices")) {
 
   // "file" mode reuses an existing vo/ directory, so don't wipe it
   if (TTS === "file") {
-    const missing = SCRIPT.map((_, i) => path.join(VO, String(i).padStart(2, "0") + ".wav"))
+    const missing = SCRIPT.map(b => path.join(VO, String(b.voIdx).padStart(2, "0") + ".wav"))
       .filter(f => !fs.existsSync(f));
     if (missing.length) {
       console.error(`--tts file needs one wav per line in ${VO}\n`
@@ -262,7 +304,11 @@ if (argv.includes("--list-voices")) {
   // A render that fails part way leaves nothing behind, and it has already wiped the
   // previous cut. Keep the last good one: re-recording costs four minutes, and losing
   // the only finished video the day before a deadline costs rather more.
-  if (stash) fs.writeFileSync(path.join(OUT, "airlock-demo.previous.mp4"), stash);
+  if (stash) {
+    const keepDir = path.resolve(__dirname, "../.airlock-cuts");
+    fs.mkdirSync(keepDir, { recursive: true });
+    fs.writeFileSync(path.join(keepDir, `cut-${Date.now()}.mp4`), stash);
+  }
 
   // ── 1. synthesise the narration and measure it ──────────────────────────
   // Cloud Text-to-Speech sounds markedly better than macOS `say`, but needs a project
@@ -284,8 +330,7 @@ if (argv.includes("--list-voices")) {
     const raw = wav.replace(".wav", ".raw.wav");
     fs.writeFileSync(raw, Buffer.from(out.audioContent, "base64"));
     sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, "-ar", "44100", "-ac", "2", wav]);
-    fs.rmSync(raw);
-  }
+    }
 
   // Gemini TTS. The key comes from the environment and is never printed or written to
   // disk -- it goes into a temp file only so it stays off the process list.
@@ -338,7 +383,7 @@ if (argv.includes("--list-voices")) {
 
   const clips = SCRIPT.map((b, i) => {
     if (NO_VOICE) return { len: 2.8 };
-    const wav = path.join(VO, String(i).padStart(2, "0") + ".wav");
+    const wav = path.join(VO, String(b.voIdx).padStart(2, "0") + ".wav");
     if (TTS === "file") {
       if (TEMPO !== 1) {
         const fast = wav.replace(".wav", ".fast.wav");
@@ -472,6 +517,7 @@ if (argv.includes("--list-voices")) {
   // decides -- waiting for one there burns the whole timeout as dead air on camera.
   async function chip(label, { waitFor = "reply", settle = 150 } = {}) {
     const budget = WITH_KEY ? 60000 : 20000;   // a model turn is slower than a function call
+    await pace();                              // no-op unless this beat is model-driven
     const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
     await page.click(`.chips button:text-is("${label}")`);
     if (waitFor === "modal") {
@@ -482,6 +528,7 @@ if (argv.includes("--list-voices")) {
       ).catch(() => {});               // a beat that never answers still gets filmed
     }
     await page.waitForTimeout(settle);
+    await dropRetryNotices();
   }
 
   // ask() types a real question, the way someone using the product would
@@ -524,6 +571,7 @@ if (argv.includes("--list-voices")) {
   const awaitPaste = async () => { if (pasting) { await pasting; pasting = null; } };
 
   async function setModel(on) {
+    if (!WITH_KEY) on = false;   // --with-key is the switch; the script cannot override it
     await page.evaluate(([enable, k]) => {
       try {
         localStorage.removeItem("airlock.gemini.model");
@@ -535,8 +583,65 @@ if (argv.includes("--list-voices")) {
     await page.waitForTimeout(150);
   }
 
+  // Free-tier quota is per model and per minute (5 rpm), and one prompt is not one
+  // request: a tool-calling turn is a loop of four or five. So a single question can
+  // exhaust its own model's window. Pacing between questions -- the obvious lever --
+  // does nothing about that. What works is one question per model per window: pick the
+  // least recently used model, and wait only until *its* minute is clear.
+  // Each model name is its own quota bucket -- 5 rpm and 20 requests a day apiece --
+  // so the pool is the budget. Flash-lite names are deliberately absent: they 404 when
+  // the request carries tools, which is every request this demo makes.
+  const MODELS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash",
+                  "gemini-3.5-flash", "gemini-3-flash-preview", "gemini-2.5-flash"];
+  const WINDOW = 64000;
+  const lastUse = new Map(MODELS.map(m => [m, 0]));
+
+  // Every model-driven beat goes through here, typed question and suggestion chip
+  // alike. The earlier version only paced startAsk(), so the chips in between ran
+  // unpaced on whatever model was last set -- which is exactly where the 429s landed.
+  async function pace() {
+    if (!WITH_KEY) return null;
+    if (!await page.evaluate(() => { try { return !!localStorage.getItem("airlock.gemini.key"); } catch { return false; } }))
+      return null;                              // router beat, no request to pace
+    const m = MODELS.reduce((a, b) => lastUse.get(a) <= lastUse.get(b) ? a : b);
+    const wait = lastUse.get(m) + WINDOW - Date.now();
+    if (wait > 0) {
+      console.log(`  waiting ${Math.ceil(wait / 1000)}s for ${m}'s rate window`);
+      await new Promise(r => setTimeout(r, wait));
+    }
+    lastUse.set(m, Date.now());
+    await page.evaluate(n => {
+      try { localStorage.setItem("airlock.gemini.model", n); } catch {}
+      if (typeof syncKeyUI === "function") syncKeyUI();
+    }, m);
+    return m;
+  }
+  const nextModel = pace;
+
+  // A retry notice is infrastructure, not an answer: the reply that follows it comes
+  // from the same live model. Drop it from the transcript so a 15-second quota blip
+  // does not sit on screen for the rest of the recording.
+  let retriesSeen = 0;
+  const dropRetryNotices = async () => {
+    const n = await page.evaluate(() => {
+      let k = 0;
+      document.querySelectorAll("#chat .msg.a").forEach(el => {
+        if (/^Rate limited by the model API/.test(el.textContent || "")) { el.remove(); k++; }
+      });
+      return k;
+    });
+    if (n) { retriesSeen += n; console.log(`  (dropped ${n} retry notice${n > 1 ? "s" : ""})`); }
+  };
+
   let asking = null;
-  function startAsk(q, opts) { asking = ask(q, opts); }
+  function startAsk(q, opts) {
+    asking = (async () => {
+      await pace();
+      const r = await ask(q, opts);
+      await dropRetryNotices();
+      return r;
+    })();
+  }
   const awaitAsk = async () => { if (asking) { await asking; asking = null; } };
 
   const dismissModal = async () => {
@@ -545,7 +650,7 @@ if (argv.includes("--list-voices")) {
 
   const helpers = { partner: page.frameLocator("#f"), chip, ask, dismissModal,
                     showDiagram, hideDiagram, setModel, startPasteKey, awaitPaste,
-                    startAsk, awaitAsk };
+                    startAsk, awaitAsk, nextModel };
   const t0 = Date.now();
   const beats = [];
   for (let i = 0; i < SCRIPT.length; i++) {
@@ -564,6 +669,36 @@ if (argv.includes("--list-voices")) {
   const raw = await vid.path();
   fs.writeFileSync(path.join(OUT, "beats.json"), JSON.stringify(beats, null, 2));
 
+  // ── 2b. cut the dead time ───────────────────────────────────────────────
+  // A beat's UI work runs before its narration, so a slow model call shows as silence.
+  // Rather than fight the latency, excise it: for every gap between one line ending and
+  // the next beginning, drop all but a beat of it from the picture and pull every later
+  // line forward by the same amount. This is the cut a human editor makes.
+  const KEEP = 0.55;                       // breathing room left at each seam
+  const cuts = [];                         // [from, to] in the recorded timeline
+  let shift = 0;
+  const timeline = beats.map((b, i) => {
+    const endOfAudio = b.at + clips[i].len;
+    const nextAt = i + 1 < beats.length ? beats[i + 1].at : null;
+    const placed = { at: b.at - shift, cap: b.cap, vo: b.vo, len: clips[i].len };
+    if (nextAt !== null) {
+      const gap = nextAt - endOfAudio;
+      if (gap > KEEP + 0.4) {
+        cuts.push([endOfAudio + KEEP / 2, nextAt - KEEP / 2]);
+        shift += gap - KEEP;
+      }
+    }
+    return placed;
+  });
+  const removed = cuts.reduce((a, [f, t]) => a + (t - f), 0);
+  if (cuts.length) console.log(`cutting ${cuts.length} dead stretches, ${removed.toFixed(1)}s total`);
+
+  // keep the spans between the cuts
+  const keeps = [];
+  let cursor = 0;
+  for (const [f, t] of cuts) { if (f > cursor) keeps.push([cursor, f]); cursor = t; }
+  keeps.push([cursor, 1e6]);
+
   // ── 3. mix the voice onto the picture at the beat times recorded ────────
   const mp4 = path.join(OUT, "airlock-demo.mp4");
   if (NO_VOICE) {
@@ -573,20 +708,27 @@ if (argv.includes("--list-voices")) {
       "-crf", "20", "-pix_fmt", "yuv420p", "-movflags", "+faststart", mp4]);
   } else {
     const inputs = [], filters = [];
-    beats.forEach((b, n) => {
+    timeline.forEach((b, n) => {
       inputs.push("-i", clips[n].file);
       filters.push(`[${n + 1}:a]adelay=${Math.round(b.at * 1000)}|${Math.round(b.at * 1000)}[a${n}]`);
     });
-    const mixed = beats.map((_, n) => `[a${n}]`).join("");
+    const mixed = timeline.map((_, n) => `[a${n}]`).join("");
+    // trim the picture to the kept spans, then concatenate them back together
+    const vparts = keeps.map(([f, t], i) =>
+      `[0:v]trim=start=${f.toFixed(3)}${t < 1e5 ? `:end=${t.toFixed(3)}` : ""},setpts=PTS-STARTPTS[v${i}]`);
+    const vcat = keeps.map((_, i) => `[v${i}]`).join("") + `concat=n=${keeps.length}:v=1:a=0[vc]`;
     sh("ffmpeg", ["-y", "-loglevel", "error", "-i", raw, ...inputs,
-      "-filter_complex", `${filters.join(";")};${mixed}amix=inputs=${beats.length}:normalize=0:dropout_transition=0[out]`,
-      "-map", "0:v", "-map", "[out]",
-      "-vf", "scale=1920:1080:flags=lanczos",
+      "-filter_complex",
+      `${vparts.join(";")};${vcat};[vc]scale=1920:1080:flags=lanczos[vout];`
+      + `${filters.join(";")};${mixed}amix=inputs=${timeline.length}:normalize=0:dropout_transition=0[out]`,
+      "-map", "[vout]", "-map", "[out]",
       "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-pix_fmt", "yuv420p",
       "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", mp4]);
   }
-  fs.rmSync(raw);
   const total = dur(mp4);
   const mm = `${Math.floor(total / 60)}:${String(Math.round(total % 60)).padStart(2, "0")}`;
   console.log(`\n${mp4}\nruntime ${mm}  ${total > 175 ? "*** OVER 3:00 BUDGET ***" : "(limit 3:00)"}`);
+  if (WITH_KEY) console.log(retriesSeen
+    ? `${retriesSeen} rate-limit retries hit during the take (notices removed from the transcript)`
+    : "no rate limiting during the take");
 })();
