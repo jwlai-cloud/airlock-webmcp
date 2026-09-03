@@ -1089,7 +1089,7 @@ if (!("modelContext" in document)) {
     },
     {
       name: "request_partner_consent", title: "Request partner approval",
-      description: "Ask an operator at each company to approve a stated purpose for querying across the boundary. On approval, registers estimate_overlap.",
+      description: "Call this FIRST whenever a comparison between the two companies' audiences is wanted and estimate_overlap is not in the tool list. It asks an operator at each company to approve a stated purpose, and on approval registers estimate_overlap. It is the only way that capability can come into existence — nothing else unlocks it.",
       inputSchema: { type: "object", properties: {
         purpose: { type: "string", description: "What you intend to measure" } },
         required: ["purpose"] },
@@ -1148,7 +1148,7 @@ if (!("modelContext" in document)) {
     overlapAbort = new AbortController();
     document.modelContext.registerTool({
       name: "estimate_overlap", title: "Measure audience overlap",
-      description: "THE tool for comparing two audiences: overlap and incremental reach between one of your cohorts and a partner segment. Use this for any question about how much two audiences share. Aggregates only, and the only tool with a k-anonymity floor — a result describing too few people is withheld outright.",
+      description: "Overlap and incremental reach between one of your cohorts and a partner segment — the tool for comparing two audiences, and the only one with a k-anonymity floor, so a result describing too few people is withheld outright. Aggregates only. It exists only after both operators approve a purpose; if it is absent, call request_partner_consent first.",
       inputSchema: { type: "object", properties: {
         cohortId: { type: "string" }, segment: { type: "string" } },
         required: ["cohortId", "segment"] },

@@ -18,6 +18,12 @@ const arg = (k, d) => { const i = argv.indexOf(k); return i < 0 ? d : argv[i + 1
 // injected straight into localStorage before the page script runs, and never typed
 // into the UI -- so it cannot appear on camera even for a frame.
 const WITH_KEY = argv.includes("--with-key");
+// --vertex <project> records against Vertex AI instead of the AI Studio endpoint, to get
+// past free-tier capacity during a take. The page is NOT modified: a fetch shim injected
+// into the recording session rewrites the request, so the shipped code -- the code a judge
+// runs, with their own AI Studio key -- is exactly what is in the repo.
+const VERTEX = arg("--vertex", "");
+const VERTEX_LOC = arg("--vertex-location", "global");
 const TEMPO = parseFloat(arg("--tempo", "1"));   // atempo preserves pitch; 1.05-1.10 is inaudible
 function readEnvKey() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY.trim();
@@ -119,27 +125,33 @@ const FULL_SCRIPT = [
 
   { cap: "exposedTo names one origin. A third gets no denial.",
     vo: "The publisher registers with exposedTo, naming one origin. A third gets no denial — it never learns they exist.",
+    go: async (p, h) => { await h.spotlight(0.050, 0.255, 0.440, 0.117); },   // imperative panel
     extra: 0.4 },
 
   { cap: "allow=\"tools\" — the frame is how the crossing is permitted at all.",
     vo: "Its console runs in a frame carrying allow equals tools — the Permissions Policy that lets either side reach the other.",
+    go: async (p, h) => { await h.spotlight(0.515, 0.650, 0.440, 0.070); },   // rest of the surface
     extra: 0.4 },
 
   { cap: "getTools({fromOrigins}) · executeTool() · browser-mediated.",
     vo: "The advertiser reaches them with getTools and fromOrigins, then executeTool — each running in the publisher's page, over records that never move.",
+    go: async (p, h) => { await h.spotlight(0.050, 0.420, 0.440, 0.070); },   // the discovery half
     extra: 0.4 },
 
   { cap: "The description is prompt, not documentation.",
     vo: "A tool's description is not a comment. It is the whole basis on which a model decides to call it. Ours says the export tool always refuses, so the model reports that instead of retrying.",
+    go: async (p, h) => { await h.spotlight(0.515, 0.725, 0.440, 0.170); },   // the annotations
     extra: 0.3 },
 
   { cap: "One tool is a <form>. The browser writes its schema.",
     vo: "One tool is not JavaScript — a form with toolname, and the browser writes its schema.",
+    go: async (p, h) => { await h.spotlight(0.520, 0.225, 0.440, 0.335); },   // declarative panel
     extra: 0.3 },
 
   // ---- refusal ----
   { cap: "Three published facts about this API were wrong.",
     vo: "Building it disproved three things the documentation says. requestUserInteraction does not exist in Chrome at all. fromOrigins is additive, not a filter. And executeTool needs a JSON string — an object throws.",
+    go: async (p, h) => { await h.spotlight(null); },       // pull back before cutting away
     extra: 0.4 },
 
   { cap: "Asking for the records is refused outright.",
@@ -195,7 +207,7 @@ const FULL_SCRIPT = [
     // "check luxury auto intenders" sends a live model to the reach tool, which always
     // returns a number and can never demonstrate the floor. Ask for the overlap.
     go: async (p, h) => { await h.setModel(true);
-                          h.startAsk("What is the overlap between high lifetime value and luxury auto intenders?");
+                          h.startAsk("Estimate the overlap between cohort 2 and the luxury-auto-intenders segment.");
                           await h.awaitAsk(); } },
 
   // ---- SLIDE: the defence ----
@@ -205,14 +217,18 @@ const FULL_SCRIPT = [
 
   { cap: "Three gates. None of them trusts the model.",
     vo: "Three gates. Not one depends on the model behaving well.",
-    go: async (p, h) => { await h.showDiagram("airlock-defence.png"); }, extra: 0.3 },
+    go: async (p, h) => { await h.spotlight(null); await h.showDiagram("airlock-defence.png"); }, extra: 0.3 },
 
   // ---- revocation + close ----
   { cap: "Abort the signal → the tool is unregistered → gone.",
     vo: "And it is revocable. Abort the signal, the tool is unregistered. Gone, not disabled.",
     go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(200);
                      await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(180);
-                     await p.click("#btn-revoke"); await p.waitForTimeout(300);
+                     // disabled until consent is granted, and that state arrives from a
+                     // model turn, so it can lag the beat. Wait for it properly.
+                     try { await p.click("#btn-revoke", { timeout: 60000 }); }
+                     catch { console.log("  !! revoke never enabled -- consent was not granted"); }
+                     await p.waitForTimeout(300);
                      await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(400); } },
 
   { cap: "A permission check can be argued past. A tool that does not exist cannot.\ngithub.com/jwlai-cloud/airlock-webmcp",
@@ -442,11 +458,36 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
     args: ["--no-first-run", "--no-default-browser-check", "--disable-sync", "--hide-scrollbars"],
     recordVideo: { dir: OUT, size: { width: 1440, height: 810 } }
   });
+  // Recording starts the moment the context exists, which is before the first paint.
+  // Beat times are measured from here so they are video time, and the blank head gets
+  // cut like any other dead stretch.
+  const videoT0 = Date.now();
   const page = ctx.pages()[0] || await ctx.newPage();
   // The profile is shared with the test harnesses and verify-llm.js leaves a Gemini key
   // in localStorage. By default clear it, so a recording is deterministic rather than
   // dependent on someone else's server. With --with-key, set it instead -- written
   // directly to storage before the page script runs, so it never reaches the DOM.
+  if (VERTEX) {
+    const token = sh("gcloud", ["auth", "print-access-token"]).trim();
+    await page.addInitScript(([tok, proj, loc]) => {
+      const host = loc === "global" ? "aiplatform.googleapis.com"
+                                    : `${loc}-aiplatform.googleapis.com`;
+      const orig = window.fetch;
+      window.fetch = function (input, init) {
+        const url = typeof input === "string" ? input : (input && input.url) || "";
+        const m = url.match(/\/models\/([^:]+):generateContent/);
+        if (m && url.includes("generativelanguage.googleapis.com")) {
+          const model = decodeURIComponent(m[1]);
+          return orig(`https://${host}/v1/projects/${proj}/locations/${loc}`
+                    + `/publishers/google/models/${model}:generateContent`,
+            { method: "POST", body: (init || {}).body,
+              headers: { "Content-Type": "application/json", Authorization: "Bearer " + tok } });
+        }
+        return orig(input, init);
+      };
+    }, [token, VERTEX, VERTEX_LOC]);
+    console.log(`recording against Vertex AI (${VERTEX}, ${VERTEX_LOC})`);
+  }
   if (WITH_KEY) {
     const key = readEnvKey();
     if (!key) {
@@ -501,18 +542,75 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
           pointer-events:none;transition:opacity .45s ease`;
         const img = document.createElement("img");
         img.id = "__diagimg";
-        img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain";
+        img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain;"
+          + "transform-origin:50% 50%;transition:transform 1.1s cubic-bezier(.4,0,.2,1)";
         el.appendChild(img);
         document.body.appendChild(el);
       }
-      document.getElementById("__diagimg").src = src;
+      const img = document.getElementById("__diagimg");
+      img.src = src;
+      img.style.transform = "none";            // a new slide always starts whole
       requestAnimationFrame(() => { el.style.opacity = "1"; });
     }, "data:image/png;base64," + b64);
     await page.waitForTimeout(300);
   }
+  // A dense slide held whole for a minute is a still photograph, and the eye stops
+  // reading it after about ten seconds. focus() moves the frame to the quadrant the
+  // narration is on, so the picture keeps pace with the sentence. x/y are fractions of
+  // the image; scale 1 returns to the whole thing.
+  const focusDiagram = (x, y, scale) => page.evaluate(([fx, fy, k]) => {
+    const img = document.getElementById("__diagimg");
+    if (!img) return;
+    if (k === 1) { img.style.transform = "none"; return; }
+    // Scaling *around* the target point pushes everything on one side of it out of
+    // frame, which clips panels mid-word. Translate the point to the centre first, then
+    // scale about the centre. Clamp so the frame can never run off the artwork.
+    const half = 0.5 / k;
+    const cx = Math.min(Math.max(fx, half), 1 - half);
+    const cy = Math.min(Math.max(fy, half), 1 - half);
+    img.style.transformOrigin = "50% 50%";
+    img.style.transform =
+      `scale(${k}) translate(${((0.5 - cx) * 100).toFixed(2)}%, ${((0.5 - cy) * 100).toFixed(2)}%)`;
+  }, [x, y, scale]);
+
+  // Zoom alone still leaves the viewer hunting for which line the sentence is about.
+  // spotlight() outlines the region and dims everything else, so the answer is not a
+  // guess. x/y/w/h are fractions of the artwork; no arguments clears it.
+  const spotlight = (x, y, w, h) => page.evaluate(([hx, hy, hw, hh]) => {
+    const img = document.getElementById("__diagimg");
+    const wrap = document.getElementById("__diag");
+    if (!img || !wrap) return;
+    let box = document.getElementById("__diaghl");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "__diaghl";
+      box.style.cssText = "position:fixed;border:3px solid #0F766E;border-radius:12px;"
+        + "box-shadow:0 0 0 9999px rgba(15,42,38,.42);opacity:0;pointer-events:none;"
+        + "z-index:151;transition:opacity .5s ease,left .8s cubic-bezier(.4,0,.2,1),"
+        + "top .8s cubic-bezier(.4,0,.2,1),width .8s cubic-bezier(.4,0,.2,1),"
+        + "height .8s cubic-bezier(.4,0,.2,1)";
+      wrap.appendChild(box);
+    }
+    if (hx == null) { box.style.opacity = "0"; return; }
+    // object-fit:contain letterboxes, so the artwork is not the element box.
+    const r = img.getBoundingClientRect();
+    const ar = img.naturalWidth / img.naturalHeight;
+    const drawW = r.width / r.height > ar ? r.height * ar : r.width;
+    const drawH = drawW / ar;
+    const ox = r.left + (r.width - drawW) / 2;
+    const oy = r.top + (r.height - drawH) / 2;
+    box.style.left   = (ox + hx * drawW) + "px";
+    box.style.top    = (oy + hy * drawH) + "px";
+    box.style.width  = (hw * drawW) + "px";
+    box.style.height = (hh * drawH) + "px";
+    box.style.opacity = "1";
+  }, [x, y, w, h]);
+
   const hideDiagram = () => page.evaluate(() => {
     const el = document.getElementById("__diag");
     if (el) el.style.opacity = "0";
+    const box = document.getElementById("__diaghl");
+    if (box) box.style.opacity = "0";
   });
 
   // Recording against the deployed pair means every partner call is a real network
@@ -622,6 +720,7 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
   // unpaced on whatever model was last set -- which is exactly where the 429s landed.
   async function pace() {
     if (!WITH_KEY) return null;
+    if (VERTEX) return null;          // paid quota; nothing to ration and no bucket to rotate
     if (!await page.evaluate(() => { try { return !!localStorage.getItem("airlock.gemini.key"); } catch { return false; } }))
       return null;                              // router beat, no request to pace
     const m = MODELS.reduce((a, b) => lastUse.get(a) <= lastUse.get(b) ? a : b);
@@ -670,9 +769,10 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
   };
 
   const helpers = { partner: page.frameLocator("#f"), chip, ask, dismissModal,
-                    showDiagram, hideDiagram, setModel, startPasteKey, awaitPaste,
+                    showDiagram, hideDiagram, focusDiagram, spotlight, setModel,
+                    startPasteKey, awaitPaste,
                     startAsk, awaitAsk, nextModel };
-  const t0 = Date.now();
+  const t0 = videoT0;
   const beats = [];
   for (let i = 0; i < SCRIPT.length; i++) {
     const b = SCRIPT[i];
@@ -697,7 +797,11 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
   // line forward by the same amount. This is the cut a human editor makes.
   const KEEP = 0.55;                       // breathing room left at each seam
   const cuts = [];                         // [from, to] in the recorded timeline
-  let shift = 0;
+  // Everything before the first caption is page load: a white frame, then an unlabelled
+  // one. Open on the product, not on a blank.
+  const head = beats.length ? Math.max(0, beats[0].at - 0.35) : 0;
+  if (head > 0.2) cuts.push([0, head]);
+  let shift = head;
   const timeline = beats.map((b, i) => {
     const endOfAudio = b.at + clips[i].len;
     const nextAt = i + 1 < beats.length ? beats[i + 1].at : null;

@@ -122,7 +122,7 @@ said plainly in the README rather than overclaimed.
 (paste the YouTube URL — must be PUBLIC, not unlisted)
 ```
 
-Local file: `.airlock-cuts/truthful-221.mp4` — 2:21, 1920×1080, H.264 + AAC.
+Local file: `.airlock-cuts/vertex2-236.mp4` — 2:36, 1920×1080, H.264 + AAC.
 
 ---
 
