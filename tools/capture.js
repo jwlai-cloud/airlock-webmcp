@@ -191,8 +191,12 @@ const FULL_SCRIPT = [
 
   { cap: "Too few people matched. Withheld, not rounded.",
     vo: "A segment too thin to be safe is withheld, not rounded.",
+    // The suppression floor lives in publisher_overlap_count, not in segment reach --
+    // "check luxury auto intenders" sends a live model to the reach tool, which always
+    // returns a number and can never demonstrate the floor. Ask for the overlap.
     go: async (p, h) => { await h.setModel(true);
-                          await h.chip("Check luxury auto intenders"); } },
+                          h.startAsk("What is the overlap between high lifetime value and luxury auto intenders?");
+                          await h.awaitAsk(); } },
 
   // ---- SLIDE: the defence ----
   { cap: "25 automated checks, against the deployed pair.",
@@ -524,7 +528,17 @@ if (SCRIPT.length !== FULL_SCRIPT.length)
     const budget = WITH_KEY ? 240000 : 20000;
     await pace();                              // no-op unless this beat is model-driven
     const before = await page.evaluate(() => document.querySelectorAll("#chat .msg.a").length);
-    await page.click(`.chips button:text-is("${label}")`);
+    // A live turn can still be settling when the next beat starts, and the default click
+    // timeout is shorter than a model turn. Give the click the same budget, and if the
+    // chip still will not take it, type the prompt -- the beat is the question, not the
+    // button that happens to carry it.
+    try {
+      await page.click(`.chips button:text-is("${label}")`, { timeout: budget });
+    } catch {
+      console.log(`  !! chip "${label}" never became clickable -- typing it instead`);
+      await page.fill("#ask", label);
+      await page.click("#send");
+    }
     if (waitFor === "modal") {
       await page.waitForSelector("#veil.on", { timeout: budget }).catch(() => {});
     } else {
