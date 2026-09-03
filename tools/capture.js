@@ -79,19 +79,19 @@ const SCRIPT = [
 
   { cap: "Bring your own model — the key stays in your browser.",
     vo: "Any agent can drive it. Paste a Gemini key and a real model takes over.",
-    go: async (p, h) => { await h.awaitPaste(); }, extra: 0.2 },
+    go: async (p, h) => { await h.awaitPaste(); await h.setModel(false);
+                          h.startAsk("What audiences do we hold?"); }, extra: 0.2 },
 
   { cap: "getTools() to discover. executeTool() to call.",
     vo: "getTools to see what the page offers, executeTool to invoke one.",
-    go: async (p, h) => { await h.setModel(false);   // router: keeps the budget for the beat below
-                          await h.ask("What audiences do we hold?"); } },
+    go: async (p, h) => { await h.awaitAsk();          // started under the previous beat
+                          await h.setModel(true);      // live model hits the boundary next
+                          h.startAsk("How much does high lifetime value overlap with Meridian's sports fans?",
+                                     { allowModal: true }); } },
 
   { cap: "estimate_overlap was never registered. Nothing to call.",
     vo: "But it cannot measure the overlap. That tool was never registered, so getTools never returned it.",
-    go: async (p, h) => { await h.setModel(true);    // the live model hits the boundary here
-                          await h.ask("How much does high lifetime value overlap with Meridian's sports fans?",
-                                      { allowModal: true });
-                          await h.setModel(false); }, extra: 0.2 },
+    go: async (p, h) => { await h.awaitAsk(); await h.setModel(false); }, extra: 0.2 },
 
   { cap: "A permission check can be argued past. A missing tool cannot.",
     vo: "That is the idea. A permission check can be argued past. A missing tool cannot.",
@@ -191,10 +191,10 @@ const SCRIPT = [
   // ---- revocation + close ----
   { cap: "Abort the signal → the tool is unregistered → gone.",
     vo: "And it is revocable. Abort the signal, the tool is unregistered. Gone, not disabled.",
-    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(300);
-                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(250);
-                     await p.click("#btn-revoke"); await p.waitForTimeout(400);
-                     await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(600); } },
+    go: async (p, h) => { await h.hideDiagram(); await p.waitForTimeout(200);
+                     await p.click('nav a[data-view="analysis"]'); await p.waitForTimeout(180);
+                     await p.click("#btn-revoke"); await p.waitForTimeout(300);
+                     await p.click('nav a[data-view="diag"]'); await p.waitForTimeout(400); } },
 
   { cap: "A permission check can be argued past. A tool that does not exist cannot.\ngithub.com/jwlai-cloud/airlock-webmcp",
     vo: "Two companies answered a question about their shared customers. Neither saw the other's data. Airlock.",
@@ -535,12 +535,17 @@ if (argv.includes("--list-voices")) {
     await page.waitForTimeout(150);
   }
 
+  let asking = null;
+  function startAsk(q, opts) { asking = ask(q, opts); }
+  const awaitAsk = async () => { if (asking) { await asking; asking = null; } };
+
   const dismissModal = async () => {
     if (await page.isVisible("#veil.on").catch(() => false)) await page.click("#mno");
   };
 
   const helpers = { partner: page.frameLocator("#f"), chip, ask, dismissModal,
-                    showDiagram, hideDiagram, setModel, startPasteKey, awaitPaste };
+                    showDiagram, hideDiagram, setModel, startPasteKey, awaitPaste,
+                    startAsk, awaitAsk };
   const t0 = Date.now();
   const beats = [];
   for (let i = 0; i < SCRIPT.length; i++) {
