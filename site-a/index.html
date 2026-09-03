@@ -375,7 +375,7 @@ tr:last-child td{border-bottom:0}
                     can fill it in without a line of JavaScript from us.</p>
                   <form id=reachform
                         toolname="check_segment_reach"
-                        tooldescription="Look up the total reach of one partner audience segment. Returns an aggregate count only; never customer records.">
+                        tooldescription="Total reach of ONE partner segment on its own. Does not compare audiences and cannot measure overlap — use estimate_overlap for that. Returns an aggregate count only; never customer records.">
                     <div class=row>
                       <label class=f>Segment
                         <select name=segment id=r-seg
@@ -1149,7 +1149,7 @@ if (!("modelContext" in document)) {
     overlapAbort = new AbortController();
     document.modelContext.registerTool({
       name: "estimate_overlap", title: "Measure audience overlap",
-      description: "Overlap and incremental reach between one of your audiences and a partner segment. Aggregates only; withheld below the k-anonymity floor.",
+      description: "THE tool for comparing two audiences: overlap and incremental reach between one of your cohorts and a partner segment. Use this for any question about how much two audiences share. Aggregates only, and the only tool with a k-anonymity floor — a result describing too few people is withheld outright.",
       inputSchema: { type: "object", properties: {
         cohortId: { type: "string" }, segment: { type: "string" } },
         required: ["cohortId", "segment"] },
